@@ -35,6 +35,7 @@ final class TodayViewModel {
     private var undoCoordinator: UndoCoordinator?
     @ObservationIgnored
     private var restTimer: RestTimerStarting
+    private(set) var activeDraftStartedAt: Date?
     private var reopenedDraftID: UUID?
     private var activeDraftSessionID: UUID?
     private let now: Date
@@ -64,6 +65,10 @@ final class TodayViewModel {
         self.undoCoordinator = undoCoordinator
     }
 
+    func setRestTimer(_ restTimer: any RestTimerStarting) {
+        self.restTimer = restTimer
+    }
+
     func load() {
         refresh()
     }
@@ -76,6 +81,7 @@ final class TodayViewModel {
             isProgramDayLocked = false
             programDayLockHint = nil
             finishWorkoutPreview = nil
+            activeDraftStartedAt = nil
             return
         }
 
@@ -104,12 +110,14 @@ final class TodayViewModel {
                 isProgramDayLocked = true
                 programDayLockHint = makeProgramDayLockHint(for: persistedDraft)
                 finishWorkoutPreview = try draftService.finishWorkoutPreview(for: persistedDraft)
+                activeDraftStartedAt = persistedDraft.startedAt
                 return
             } else {
                 activeDraftSessionID = nil
                 isProgramDayLocked = false
                 programDayLockHint = nil
                 finishWorkoutPreview = nil
+                activeDraftStartedAt = nil
             }
 
             if let currentSelection = selectedProgramDay,
@@ -132,6 +140,7 @@ final class TodayViewModel {
             isProgramDayLocked = false
             programDayLockHint = nil
             finishWorkoutPreview = nil
+            activeDraftStartedAt = nil
         }
     }
 
@@ -163,13 +172,14 @@ final class TodayViewModel {
         return session
     }
 
-    func tapSet(_ setID: UUID) throws {
+    @discardableResult
+    func tapSet(_ setID: UUID) async throws -> Bool {
         let displayedPlan = draftPlan
-        guard let session = try prepareDraftIfNeeded() else { return }
-        guard let (loggedSet, exerciseLog) = resolveSet(id: setID, in: session, displayedPlan: displayedPlan) else { return }
+        guard let session = try prepareDraftIfNeeded() else { return false }
+        guard let (loggedSet, exerciseLog) = resolveSet(id: setID, in: session, displayedPlan: displayedPlan) else { return false }
         let currentState = SetTapStateMachine.state(for: loggedSet.actualReps, targetReps: loggedSet.targetReps)
         let result = SetTapStateMachine.tap(current: currentState, targetReps: loggedSet.targetReps, kind: loggedSet.kind)
-        guard result.transition != .noop else { return }
+        guard result.transition != .noop else { return false }
 
         let previousReps = loggedSet.actualReps
         apply(transition: result.transition, to: loggedSet)
@@ -177,8 +187,12 @@ final class TodayViewModel {
         if loggedSet.kind == .working,
            currentState == .pending,
            result.newState == .complete {
-            // TODO(Phase 5): Replace this stub with the real rest-timer coordinator.
-            restTimer.startRest(forExerciseLog: exerciseLog)
+            await restTimer.start(
+                exerciseLogID: exerciseLog.id,
+                setID: loggedSet.id,
+                durationSeconds: restDuration(for: exerciseLog),
+                now: loggedSet.completedAt ?? now
+            )
         }
 
         if shouldRecordUndo(from: previousReps, to: loggedSet.actualReps) {
@@ -192,6 +206,7 @@ final class TodayViewModel {
 
         try saveChanges()
         syncDraftPlan(session: session)
+        return loggedSet.kind == .working && currentState == .pending && result.newState == .complete
     }
 
     func restoreSet(_ setID: UUID, actualReps: Int?) throws {
@@ -354,6 +369,7 @@ final class TodayViewModel {
         reopenedDraftID = session.id
         selectedProgramDay = matchProgramDay(session.programDay, in: availableProgramDays)
         draftPlan = DraftSessionPlan(session: session)
+        activeDraftStartedAt = session.startedAt
         isProgramDayLocked = true
         programDayLockHint = makeProgramDayLockHint(for: session)
         if let modelContext, let draftService = try? DraftSessionService(modelContext: modelContext) {
@@ -503,6 +519,7 @@ final class TodayViewModel {
         activeDraftSessionID = nil
         reopenedDraftID = nil
         selectedProgramDay = nil
+        activeDraftStartedAt = nil
         refresh()
         return result
     }
@@ -517,18 +534,28 @@ final class TodayViewModel {
         activeDraftSessionID = nil
         reopenedDraftID = nil
         selectedProgramDay = nil
+        activeDraftStartedAt = nil
         refresh()
+    }
+
+    private func restDuration(for exerciseLog: ExerciseLog) -> Int {
+        guard let modelContext else {
+            return 0
+        }
+        guard let exerciseKey = exerciseLog.exercise?.key else {
+            return 0
+        }
+        return (try? modelContext.fetch(FetchDescriptor<ExerciseProgression>())
+            .first(where: { $0.exercise?.key == exerciseKey })?.restSeconds) ?? 0
     }
 }
 
 @MainActor
 protocol RestTimerStarting {
-    func startRest(forExerciseLog exerciseLog: ExerciseLog)
+    func start(exerciseLogID: UUID, setID: UUID, durationSeconds: Int, now: Date) async
 }
 
 @MainActor
 struct RestTimerStub: RestTimerStarting {
-    func startRest(forExerciseLog exerciseLog: ExerciseLog) {
-        _ = exerciseLog
-    }
+    func start(exerciseLogID: UUID, setID: UUID, durationSeconds: Int, now: Date) async {}
 }

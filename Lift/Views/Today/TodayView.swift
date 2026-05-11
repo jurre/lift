@@ -3,6 +3,8 @@ import SwiftUI
 
 struct TodayView: View {
     @Environment(\.modelContext) private var modelContext
+    @Environment(\.haptics) private var haptics
+    @Environment(\.restTimer) private var restTimer
     @State private var viewModel = TodayViewModel()
     @State private var undoCoordinator = UndoCoordinator()
     @State private var isShowingFinishSheet = false
@@ -21,7 +23,7 @@ struct TodayView: View {
                                     exerciseLog: exerciseLog,
                                     plateSuggestion: viewModel.plateSuggestion(for: exerciseLog),
                                     onTapSet: { setID in
-                                        perform { try viewModel.tapSet(setID) }
+                                        performAsync { try await viewModel.tapSet(setID) }
                                     },
                                     onEditWorkingWeight: { newWeight in
                                         perform { try viewModel.editWeight(forExerciseLog: exerciseLog.id, newWeightKg: newWeight) }
@@ -57,6 +59,10 @@ struct TodayView: View {
                 viewModel.setModelContext(modelContext)
                 viewModel.setReopenedDraftID(draftReopenCoordinator.resumedDraftID)
                 viewModel.setUndoCoordinator(undoCoordinator)
+                if let restTimer {
+                    viewModel.setRestTimer(restTimer)
+                    restTimer.setModelContext(modelContext)
+                }
                 viewModel.load()
             }
             .safeAreaInset(edge: .bottom) {
@@ -116,9 +122,20 @@ struct TodayView: View {
                     .foregroundStyle(.secondary)
             }
 
-            Text(Date.now.formatted(date: .complete, time: .omitted))
-                .font(.subheadline)
-                .foregroundStyle(.secondary)
+            HStack(spacing: 12) {
+                Text(Date.now.formatted(date: .complete, time: .omitted))
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+
+                if let startedAt = viewModel.activeDraftStartedAt {
+                    TimelineView(.periodic(from: .now, by: 1)) { context in
+                        Text(formattedElapsed(since: startedAt, now: context.date))
+                            .font(.subheadline)
+                            .monospacedDigit()
+                            .foregroundStyle(.secondary)
+                    }
+                }
+            }
         }
         .padding(.bottom, 4)
     }
@@ -149,6 +166,40 @@ struct TodayView: View {
         } catch {
             assertionFailure("Today action failed: \(error)")
         }
+    }
+
+    private func performAsync(_ action: @escaping () async throws -> Void) {
+        Task {
+            do {
+                try await action()
+            } catch {
+                assertionFailure("Today action failed: \(error)")
+            }
+        }
+    }
+
+    private func performAsync(_ action: @escaping () async throws -> Bool) {
+        Task {
+            do {
+                if try await action() {
+                    haptics.workingSetCompleted()
+                }
+            } catch {
+                assertionFailure("Today action failed: \(error)")
+            }
+        }
+    }
+
+    private func formattedElapsed(since startedAt: Date, now: Date) -> String {
+        let totalSeconds = max(0, Int(now.timeIntervalSince(startedAt)))
+        let hours = totalSeconds / 3600
+        let minutes = (totalSeconds % 3600) / 60
+        let seconds = totalSeconds % 60
+
+        if hours > 0 {
+            return "\(hours):\(minutes.formatted(.number.precision(.integerLength(2)))):\(seconds.formatted(.number.precision(.integerLength(2))))"
+        }
+        return "\(minutes.formatted(.number.precision(.integerLength(2)))):\(seconds.formatted(.number.precision(.integerLength(2))))"
     }
 }
 

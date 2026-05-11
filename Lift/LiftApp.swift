@@ -1,14 +1,23 @@
 import SwiftData
 import SwiftUI
+@preconcurrency import UserNotifications
 
 @main
 struct LiftApp: App {
     @State private var persistenceService = PersistenceService()
+    @State private var restTimer = RestTimerService()
+    private let notificationDelegate = LiftNotificationDelegate()
+
+    init() {
+        UNUserNotificationCenter.current().delegate = notificationDelegate
+    }
 
     var body: some Scene {
         WindowGroup {
             AppRootView(persistenceService: persistenceService)
                 .modelContainer(persistenceService.container)
+                .environment(\.restTimer, restTimer)
+                .environment(\.haptics, .live)
         }
     }
 }
@@ -29,7 +38,21 @@ private struct AppRootView: View {
             }
         }
         .task {
-            persistenceService.bootstrap()
+            await persistenceService.bootstrap()
+        }
+    }
+}
+
+final class LiftNotificationDelegate: NSObject, UNUserNotificationCenterDelegate {
+    func userNotificationCenter(
+        _ center: UNUserNotificationCenter,
+        willPresent notification: UNNotification,
+        withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void
+    ) {
+        if notification.request.identifier.hasPrefix("rest-") {
+            completionHandler([])
+        } else {
+            completionHandler([.banner, .sound])
         }
     }
 }

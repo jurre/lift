@@ -16,12 +16,13 @@ final class PersistenceService {
         self.container = container
     }
 
-    func bootstrap() {
+    func bootstrap() async {
         guard !isBootstrapped else { return }
 
         do {
             try LiftSeeder().seedIfNeeded(in: container.mainContext)
             try refreshState()
+            await NotificationAuthorizationCoordinator().requestIfNeeded()
         } catch {
             assertionFailure("Failed to bootstrap persistence: \(error)")
         }

@@ -7,11 +7,11 @@ import Testing
 @MainActor
 struct TodayViewModelSetTapTests {
     @Test("tapSet creates a draft, persists reps, and locks the day picker")
-    func tapSetCreatesDraftAndLocksSelection() throws {
+    func tapSetCreatesDraftAndLocksSelection() async throws {
         let fixture = try makeFixture()
         let workingSet = try #require(fixture.viewModel.draftPlan?.exerciseLogs.first?.sets.first(where: { $0.kind == .working }))
 
-        try fixture.viewModel.tapSet(workingSet.id)
+        try await fixture.viewModel.tapSet(workingSet.id)
 
         let service = try DraftSessionService(modelContext: fixture.context)
         let draft = try #require(service.currentDraft(now: fixture.now, calendar: fixture.calendar))
@@ -23,7 +23,7 @@ struct TodayViewModelSetTapTests {
     }
 
     @Test("working set taps decrement reps until cleared")
-    func repeatedTapsDecrementWorkingSet() throws {
+    func repeatedTapsDecrementWorkingSet() async throws {
         let fixture = try makeFixture()
         let workingSetID = try #require(
             fixture.viewModel.draftPlan?.exerciseLogs.first?.sets.first(where: { $0.kind == .working })
@@ -31,35 +31,65 @@ struct TodayViewModelSetTapTests {
 
         let expected: [Int?] = [5, 4, 3, 2, 1, 0, nil]
         for reps in expected {
-            try fixture.viewModel.tapSet(workingSetID)
+            try await fixture.viewModel.tapSet(workingSetID)
             let persisted = try #require(try fetchLoggedSet(id: workingSetID, from: fixture.context))
             #expect(persisted.actualReps == reps)
         }
     }
 
     @Test("warmup set taps only toggle between pending and target reps")
-    func warmupTapToggles() throws {
+    func warmupTapToggles() async throws {
         let fixture = try makeFixture()
         let warmupSetID = try #require(
             fixture.viewModel.draftPlan?.exerciseLogs.first?.sets.first(where: { $0.kind == .warmup })
         ).id
 
-        try fixture.viewModel.tapSet(warmupSetID)
+        try await fixture.viewModel.tapSet(warmupSetID)
         #expect(try #require(try fetchLoggedSet(id: warmupSetID, from: fixture.context)).actualReps == 5)
 
-        try fixture.viewModel.tapSet(warmupSetID)
+        try await fixture.viewModel.tapSet(warmupSetID)
         #expect(try #require(try fetchLoggedSet(id: warmupSetID, from: fixture.context)).actualReps == nil)
     }
 
+    @Test("completing a working set starts rest using the exercise progression duration")
+    func workingSetCompletionStartsRest() async throws {
+        let restTimer = RecordingRestTimer()
+        let fixture = try makeFixture(restTimer: restTimer)
+        let workingSet = try #require(
+            fixture.viewModel.draftPlan?.exerciseLogs.first?.sets.first(where: { $0.kind == .working })
+        )
+        let exerciseLog = try #require(fixture.viewModel.draftPlan?.exerciseLogs.first)
+
+        try await fixture.viewModel.tapSet(workingSet.id)
+
+        let request = try #require(restTimer.startedRests.first)
+        #expect(request.exerciseLogID == exerciseLog.id)
+        #expect(request.setID == workingSet.id)
+        #expect(request.durationSeconds == 180)
+    }
+
+    @Test("warmup completions do not start a rest timer")
+    func warmupsDoNotStartRest() async throws {
+        let restTimer = RecordingRestTimer()
+        let fixture = try makeFixture(restTimer: restTimer)
+        let warmupSetID = try #require(
+            fixture.viewModel.draftPlan?.exerciseLogs.first?.sets.first(where: { $0.kind == .warmup })
+        ).id
+
+        try await fixture.viewModel.tapSet(warmupSetID)
+
+        #expect(restTimer.startedRests.isEmpty)
+    }
+
     @Test("editWeight updates pending sets, preserves completed sets, and refreshes pending warmups")
-    func editWeightUpdatesPendingSetsAndWarmups() throws {
+    func editWeightUpdatesPendingSetsAndWarmups() async throws {
         let fixture = try makeFixture(squatWeight: 65)
         let firstExerciseLog = try #require(fixture.viewModel.draftPlan?.exerciseLogs.first)
         let completedWorkingID = try #require(firstExerciseLog.sets.first(where: { $0.kind == .working })).id
         let completedWarmupID = try #require(firstExerciseLog.sets.first(where: { $0.kind == .warmup })).id
 
-        try fixture.viewModel.tapSet(completedWorkingID)
-        try fixture.viewModel.tapSet(completedWarmupID)
+        try await fixture.viewModel.tapSet(completedWorkingID)
+        try await fixture.viewModel.tapSet(completedWarmupID)
         try fixture.viewModel.editWeight(forExerciseLog: firstExerciseLog.id, newWeightKg: 67.3)
 
         let exerciseLog = try #require(try fetchExerciseLog(id: firstExerciseLog.id, from: fixture.context))
@@ -95,7 +125,10 @@ struct TodayViewModelSetTapTests {
         #expect(try fetchLoggedSet(id: setID, from: fixture.context) == nil)
     }
 
-    private func makeFixture(squatWeight: Double = 20) throws -> TodayFixture {
+    private func makeFixture(
+        squatWeight: Double = 20,
+        restTimer: some RestTimerStarting = RecordingRestTimer()
+    ) throws -> TodayFixture {
         let container = try makeInMemoryContainer()
         let context = ModelContext(container)
         try LiftSeeder().seedIfNeeded(in: context)
@@ -104,7 +137,8 @@ struct TodayViewModelSetTapTests {
         let viewModel = TodayViewModel(
             modelContext: context,
             now: fixtureDate(),
-            timeZone: .utc
+            timeZone: .utc,
+            restTimer: restTimer
         )
         viewModel.load()
 
@@ -157,6 +191,27 @@ private struct TodayFixture {
     let now: Date
     let calendar: Calendar
     let weightLoading: WeightLoading
+}
+
+@MainActor
+private final class RecordingRestTimer: RestTimerStarting {
+    struct StartRequest: Equatable, Sendable {
+        let exerciseLogID: UUID
+        let setID: UUID
+        let durationSeconds: Int
+    }
+
+    private(set) var startedRests: [StartRequest] = []
+
+    func start(exerciseLogID: UUID, setID: UUID, durationSeconds: Int, now: Date) async {
+        startedRests.append(
+            StartRequest(
+                exerciseLogID: exerciseLogID,
+                setID: setID,
+                durationSeconds: durationSeconds
+            )
+        )
+    }
 }
 
 private extension TimeZone {

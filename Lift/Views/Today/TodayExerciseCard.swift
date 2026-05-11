@@ -8,6 +8,7 @@ struct TodayExerciseCard: View {
     let onEditSetWeight: (UUID, Double) -> Void
     let onDeleteSet: (UUID) -> Void
 
+    @Environment(\.restTimer) private var restTimer
     @State private var isShowingWarmups = false
     @State private var isShowingWorkingWeightEditor = false
 
@@ -71,12 +72,18 @@ struct TodayExerciseCard: View {
             VStack(alignment: .leading, spacing: 10) {
                 sectionLabel(title: "Working sets", count: workingSets.count)
                 ForEach(workingSets, id: \.id) { set in
-                    TodaySetRow(
-                        set: set,
-                        onTap: { onTapSet(set.id) },
-                        onEditWeight: { onEditSetWeight(set.id, $0) },
-                        onDelete: { onDeleteSet(set.id) }
-                    )
+                    VStack(alignment: .leading, spacing: 10) {
+                        TodaySetRow(
+                            set: set,
+                            onTap: { onTapSet(set.id) },
+                            onEditWeight: { onEditSetWeight(set.id, $0) },
+                            onDelete: { onDeleteSet(set.id) }
+                        )
+
+                        if let restTimer, restTimer.active?.setID == set.id {
+                            RestTimerInlineView(restTimer: restTimer, setID: set.id)
+                        }
+                    }
                 }
             }
         }
@@ -115,6 +122,119 @@ struct TodayExerciseCard: View {
                 .font(.caption.weight(.semibold))
                 .foregroundStyle(.secondary)
         }
+    }
+}
+
+private struct RestTimerInlineView: View {
+    @Bindable var restTimer: RestTimerService
+    let setID: UUID
+
+    @Environment(\.haptics) private var haptics
+    @Environment(\.scenePhase) private var scenePhase
+    @State private var completedSetID: UUID?
+
+    var body: some View {
+        TimelineView(.periodic(from: .now, by: 1)) { context in
+            if let activeRest = activeRest {
+                inlineContent(activeRest: activeRest, now: context.date)
+            } else if completedSetID == setID {
+                restedContent
+            }
+        }
+        .task(id: completionTaskID) {
+            guard let activeRest else { return }
+
+            let remaining = restTimer.remaining() ?? 0
+            if remaining > 0 {
+                try? await Task.sleep(for: .seconds(remaining))
+            }
+
+            guard scenePhase == .active,
+                  restTimer.active?.setID == activeRest.setID,
+                  restTimer.hasFinished() else {
+                return
+            }
+
+            completedSetID = activeRest.setID
+            haptics.restCompleted()
+
+            try? await Task.sleep(for: .seconds(3))
+            guard restTimer.active?.setID == activeRest.setID else {
+                completedSetID = nil
+                return
+            }
+            await restTimer.clearIfFinished()
+            completedSetID = nil
+        }
+    }
+
+    @ViewBuilder
+    private func inlineContent(activeRest: RestTimerService.ActiveRest, now: Date) -> some View {
+        if restTimer.hasFinished(now: now) {
+            restedContent
+        } else {
+            let remaining = max(restTimer.remaining(now: now) ?? 0, 0)
+            let progress = Double(remaining) / Double(max(activeRest.durationSeconds, 1))
+
+            VStack(alignment: .leading, spacing: 12) {
+                Text(formatted(remaining))
+                    .font(.title2.weight(.bold))
+                    .monospacedDigit()
+                    .foregroundStyle(.primary)
+
+                ProgressView(value: progress)
+                    .tint(.accentColor)
+
+                HStack(spacing: 12) {
+                    Button("Skip") {
+                        Task {
+                            await restTimer.skip()
+                        }
+                    }
+                    .buttonStyle(.bordered)
+
+                    Button("+30s") {
+                        Task {
+                            await restTimer.extend(bySeconds: 30)
+                        }
+                    }
+                    .buttonStyle(.borderedProminent)
+                }
+                .font(.caption.weight(.semibold))
+            }
+            .padding(14)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(Color.secondary.opacity(0.1), in: RoundedRectangle(cornerRadius: 18, style: .continuous))
+        }
+    }
+
+    private var restedContent: some View {
+        HStack {
+            Text("Rested!")
+                .font(.headline.weight(.semibold))
+                .foregroundStyle(.green)
+            Spacer()
+        }
+        .padding(14)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(Color.green.opacity(0.12), in: RoundedRectangle(cornerRadius: 18, style: .continuous))
+    }
+
+    private var activeRest: RestTimerService.ActiveRest? {
+        let active = restTimer.active
+        guard active?.setID == setID else { return nil }
+        return active
+    }
+
+    private var completionTaskID: String? {
+        guard let activeRest else { return nil }
+        return "\(activeRest.setID.uuidString)-\(activeRest.durationSeconds)-\(scenePhase == .active)"
+    }
+
+    private func formatted(_ remainingSeconds: Int) -> String {
+        let minutes = remainingSeconds / 60
+        let seconds = remainingSeconds % 60
+        return "\(minutes):\(seconds.formatted(.number.precision(.integerLength(2))))"
     }
 }
 
