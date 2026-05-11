@@ -9,11 +9,19 @@
 /* Begin PBXBuildFile section */
 		00FDB0AD86DC9E52ACE3CD2B /* Logic.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EB7DC64A1BF2C9AF78AA563 /* Logic.swift */; };
 		04F10DD5A824FA2698302B65 /* LiftModelContainer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 16180F82202B745F16D5AF1D /* LiftModelContainer.swift */; };
-		10EFCFDE85D3D43CFECDB5D1 /* LiftTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68017E5F5734CC0817F40751 /* LiftTests.swift */; };
+		1699F973C77FC2E16D0B546B /* LiftSeeder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B22C0196A89AA9BEFF3AD41 /* LiftSeeder.swift */; };
 		2543ECFA7A45B445EC621BE4 /* LiftUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E31664A376C2F2346FB1E9BF /* LiftUITests.swift */; };
-		CBEABFFF23B94CFACCF0715B /* Onboarding.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA07851C0634DD34BC5A4102 /* Onboarding.swift */; };
-		CC1B3E495E46D051CF909FC9 /* Models.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9AFCBD1E8B1236F6C719D77D /* Models.swift */; };
+		3BC469FDC98258B7EF447FD0 /* ModelEnums.swift in Sources */ = {isa = PBXBuildFile; fileRef = 67D2226119EB06025BD6EBF1 /* ModelEnums.swift */; };
+		5AF552F079281932D52CF87E /* PersistenceService.swift in Sources */ = {isa = PBXBuildFile; fileRef = CD3AFB17718E3D2F3D79F000 /* PersistenceService.swift */; };
+		5F6EDBB37C5BF5CA5C313043 /* ProgramModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54A0A47A5DB667C3CBBE02FE /* ProgramModels.swift */; };
+		850729C01ED08163E4E5E30C /* TestHelpers.swift in Sources */ = {isa = PBXBuildFile; fileRef = E4A25FBD3F292C82F171ECFC /* TestHelpers.swift */; };
+		8887D21F78FAC8F43F68AAB8 /* InvariantTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9272D7D9AE33ABAF6EB59754 /* InvariantTests.swift */; };
+		955FD9EC117745A03EAA96B2 /* WorkoutModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = BFB1DACD54CB5D58B00D13FB /* WorkoutModels.swift */; };
+		A06830E8D2CA5F289A512AC3 /* SeedingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7FB774771FCC1764981F1FDA /* SeedingTests.swift */; };
+		E1635D2D05517BCDC60DFD5D /* FirstRunWizard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 800F3F989762EC3FA20378BE /* FirstRunWizard.swift */; };
 		EF8CD76C4B413CB6D63A0EBD /* LiftApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 22981D9EA5B338D2E9E3C194 /* LiftApp.swift */; };
+		F181C13E70DC9697D9322425 /* LiftSchema.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1EB041F58C36E60D35F3A8DA /* LiftSchema.swift */; };
+		F31A874566103581665BDFA6 /* User.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4913119B91CF5611AD6E4046 /* User.swift */; };
 		FA2FFD315331FF0EEE0615C6 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54162F6689BA64C2B569488F /* ContentView.swift */; };
 /* End PBXBuildFile section */
 
@@ -36,20 +44,28 @@
 
 /* Begin PBXFileReference section */
 		16180F82202B745F16D5AF1D /* LiftModelContainer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiftModelContainer.swift; sourceTree = "<group>"; };
+		1EB041F58C36E60D35F3A8DA /* LiftSchema.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiftSchema.swift; sourceTree = "<group>"; };
 		22981D9EA5B338D2E9E3C194 /* LiftApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiftApp.swift; sourceTree = "<group>"; };
 		22A593B939534F5A21E30958 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		22AD59C08B881C82D9B07B88 /* Lift.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = Lift.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		4913119B91CF5611AD6E4046 /* User.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = User.swift; sourceTree = "<group>"; };
 		54162F6689BA64C2B569488F /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		54A0A47A5DB667C3CBBE02FE /* ProgramModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProgramModels.swift; sourceTree = "<group>"; };
+		5B22C0196A89AA9BEFF3AD41 /* LiftSeeder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiftSeeder.swift; sourceTree = "<group>"; };
 		5EB7DC64A1BF2C9AF78AA563 /* Logic.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Logic.swift; sourceTree = "<group>"; };
-		68017E5F5734CC0817F40751 /* LiftTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiftTests.swift; sourceTree = "<group>"; };
-		9AFCBD1E8B1236F6C719D77D /* Models.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Models.swift; sourceTree = "<group>"; };
+		67D2226119EB06025BD6EBF1 /* ModelEnums.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ModelEnums.swift; sourceTree = "<group>"; };
+		7FB774771FCC1764981F1FDA /* SeedingTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SeedingTests.swift; sourceTree = "<group>"; };
+		800F3F989762EC3FA20378BE /* FirstRunWizard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FirstRunWizard.swift; sourceTree = "<group>"; };
+		9272D7D9AE33ABAF6EB59754 /* InvariantTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InvariantTests.swift; sourceTree = "<group>"; };
 		B4298D96C4EEA93C6A209BD5 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		BC38F9ABE3F984EDCCC5927B /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
+		BFB1DACD54CB5D58B00D13FB /* WorkoutModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkoutModels.swift; sourceTree = "<group>"; };
+		CD3AFB17718E3D2F3D79F000 /* PersistenceService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PersistenceService.swift; sourceTree = "<group>"; };
 		CD4B5AA41307655CB82630B9 /* .gitignore */ = {isa = PBXFileReference; path = .gitignore; sourceTree = "<group>"; };
 		D155E775228C980ACE9CB8FB /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		D670AB099D3E06A58501162F /* LiftUITests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = LiftUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		E31664A376C2F2346FB1E9BF /* LiftUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiftUITests.swift; sourceTree = "<group>"; };
-		EA07851C0634DD34BC5A4102 /* Onboarding.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Onboarding.swift; sourceTree = "<group>"; };
+		E4A25FBD3F292C82F171ECFC /* TestHelpers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TestHelpers.swift; sourceTree = "<group>"; };
 		F2DD1C4A1CB233299793CEB6 /* LiftTests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = LiftTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -80,6 +96,9 @@
 			isa = PBXGroup;
 			children = (
 				16180F82202B745F16D5AF1D /* LiftModelContainer.swift */,
+				1EB041F58C36E60D35F3A8DA /* LiftSchema.swift */,
+				5B22C0196A89AA9BEFF3AD41 /* LiftSeeder.swift */,
+				CD3AFB17718E3D2F3D79F000 /* PersistenceService.swift */,
 			);
 			path = Persistence;
 			sourceTree = "<group>";
@@ -87,7 +106,7 @@
 		47F6EBBCBA756D9528DBAE2A /* Onboarding */ = {
 			isa = PBXGroup;
 			children = (
-				EA07851C0634DD34BC5A4102 /* Onboarding.swift */,
+				800F3F989762EC3FA20378BE /* FirstRunWizard.swift */,
 			);
 			path = Onboarding;
 			sourceTree = "<group>";
@@ -134,7 +153,10 @@
 		E165F74B2B2009FD0FEE9490 /* Models */ = {
 			isa = PBXGroup;
 			children = (
-				9AFCBD1E8B1236F6C719D77D /* Models.swift */,
+				67D2226119EB06025BD6EBF1 /* ModelEnums.swift */,
+				54A0A47A5DB667C3CBBE02FE /* ProgramModels.swift */,
+				4913119B91CF5611AD6E4046 /* User.swift */,
+				BFB1DACD54CB5D58B00D13FB /* WorkoutModels.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -143,7 +165,9 @@
 			isa = PBXGroup;
 			children = (
 				22A593B939534F5A21E30958 /* Info.plist */,
-				68017E5F5734CC0817F40751 /* LiftTests.swift */,
+				9272D7D9AE33ABAF6EB59754 /* InvariantTests.swift */,
+				7FB774771FCC1764981F1FDA /* SeedingTests.swift */,
+				E4A25FBD3F292C82F171ECFC /* TestHelpers.swift */,
 			);
 			path = LiftTests;
 			sourceTree = "<group>";
@@ -262,7 +286,9 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				10EFCFDE85D3D43CFECDB5D1 /* LiftTests.swift in Sources */,
+				8887D21F78FAC8F43F68AAB8 /* InvariantTests.swift in Sources */,
+				A06830E8D2CA5F289A512AC3 /* SeedingTests.swift in Sources */,
+				850729C01ED08163E4E5E30C /* TestHelpers.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -271,11 +297,17 @@
 			buildActionMask = 2147483647;
 			files = (
 				FA2FFD315331FF0EEE0615C6 /* ContentView.swift in Sources */,
+				E1635D2D05517BCDC60DFD5D /* FirstRunWizard.swift in Sources */,
 				EF8CD76C4B413CB6D63A0EBD /* LiftApp.swift in Sources */,
 				04F10DD5A824FA2698302B65 /* LiftModelContainer.swift in Sources */,
+				F181C13E70DC9697D9322425 /* LiftSchema.swift in Sources */,
+				1699F973C77FC2E16D0B546B /* LiftSeeder.swift in Sources */,
 				00FDB0AD86DC9E52ACE3CD2B /* Logic.swift in Sources */,
-				CC1B3E495E46D051CF909FC9 /* Models.swift in Sources */,
-				CBEABFFF23B94CFACCF0715B /* Onboarding.swift in Sources */,
+				3BC469FDC98258B7EF447FD0 /* ModelEnums.swift in Sources */,
+				5AF552F079281932D52CF87E /* PersistenceService.swift in Sources */,
+				5F6EDBB37C5BF5CA5C313043 /* ProgramModels.swift in Sources */,
+				F31A874566103581665BDFA6 /* User.swift in Sources */,
+				955FD9EC117745A03EAA96B2 /* WorkoutModels.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

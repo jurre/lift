@@ -2,15 +2,17 @@ import SwiftData
 
 enum LiftModelContainer {
     static let shared: ModelContainer = {
-        let schema = Schema([])
+        let schema = Schema(versionedSchema: LiftSchemaV1.self)
         let configuration = ModelConfiguration("Lift", schema: schema, isStoredInMemoryOnly: false)
 
         do {
-            return try ModelContainer(for: schema, configurations: [configuration])
+            return try ModelContainer(
+                for: schema,
+                migrationPlan: LiftMigrationPlan.self,
+                configurations: [configuration]
+            )
         } catch {
             fatalError("Failed to create Lift model container: \(error)")
         }
     }()
 }
-
-// TODO: Phase 1 registers the app's SwiftData @Model types in this schema.
