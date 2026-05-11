@@ -19,16 +19,17 @@ private struct AppRootView: View {
     var body: some View {
         Group {
             if persistenceService.isBootstrapped {
-                ContentView()
+                if persistenceService.shouldShowOnboarding {
+                    FirstRunWizard(persistenceService: persistenceService)
+                } else {
+                    RootTabView()
+                }
             } else {
                 ProgressView()
             }
         }
         .task {
             persistenceService.bootstrap()
-        }
-        .fullScreenCover(isPresented: $persistenceService.shouldShowOnboarding) {
-            FirstRunWizard(persistenceService: persistenceService)
         }
     }
 }
