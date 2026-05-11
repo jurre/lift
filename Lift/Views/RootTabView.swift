@@ -41,6 +41,18 @@ struct RootTabView: View {
         ) {
             DraftReopenSheet(coordinator: draftReopenCoordinator)
         }
+        .safeAreaInset(edge: .bottom) {
+            if let confirmationMessage = draftReopenCoordinator.confirmationMessage {
+                SnackbarView(message: confirmationMessage)
+                    .padding(.horizontal, 20)
+                    .padding(.bottom, 8)
+            }
+        }
+        .task(id: draftReopenCoordinator.confirmationMessage) {
+            guard draftReopenCoordinator.confirmationMessage != nil else { return }
+            try? await Task.sleep(for: .seconds(2))
+            draftReopenCoordinator.clearConfirmationMessage()
+        }
     }
 }
 

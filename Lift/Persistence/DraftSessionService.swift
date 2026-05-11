@@ -4,6 +4,7 @@ import SwiftData
 enum DraftSessionError: Error, Equatable {
     case draftAlreadyExistsForToday(existingID: UUID)
     case missingUserConfiguration
+    case cannotFinalizeWithPendingSets(count: Int)
 
     static func == (lhs: DraftSessionError, rhs: DraftSessionError) -> Bool {
         switch (lhs, rhs) {
@@ -11,10 +12,50 @@ enum DraftSessionError: Error, Equatable {
             return left == right
         case (.missingUserConfiguration, .missingUserConfiguration):
             return true
+        case let (.cannotFinalizeWithPendingSets(left), .cannotFinalizeWithPendingSets(right)):
+            return left == right
         default:
             return false
         }
     }
+}
+
+struct FinalizeResult: Sendable, Equatable {
+    struct PerExercise: Sendable, Equatable {
+        let exerciseName: String
+        let oldWeightKg: Double
+        let newWeightKg: Double
+        let didProgress: Bool
+        let stalledCount: Int
+    }
+
+    let perExercise: [PerExercise]
+    let nextProgramDayName: String?
+}
+
+struct FinishWorkoutPreview: Sendable, Equatable {
+    enum State: Sendable, Equatable {
+        case incomplete
+        case willProgress
+        case stalled
+        case unchanged
+    }
+
+    struct PerExercise: Sendable, Equatable {
+        let exerciseName: String
+        let setSummary: String
+        let oldWeightKg: Double
+        let newWeightKg: Double
+        let stalledCount: Int
+        let state: State
+    }
+
+    let perExercise: [PerExercise]
+    let pendingWorkingSetCount: Int
+    let canApplyProgression: Bool
+    let hasAnyLoggedWorkingSet: Bool
+    let nextProgramDayName: String?
+    let nextProgramExerciseNames: [String]
 }
 
 @MainActor
@@ -126,11 +167,98 @@ struct DraftSessionService {
         persistChanges(action: "end draft without progression")
     }
 
-    func finalize(_ session: WorkoutSession, now: Date = .now) {
+    func finishWorkoutPreview(for session: WorkoutSession) throws -> FinishWorkoutPreview {
+        let progressionsByExerciseKey = try Self.exerciseProgressionsByExerciseKey(from: modelContext)
+        let evaluations = evaluate(session, progressionsByExerciseKey: progressionsByExerciseKey)
+        let pendingWorkingSetCount = session.exerciseLogs
+            .flatMap(\.sets)
+            .filter { $0.kind == .working && $0.actualReps == nil }
+            .count
+        let hasAnyLoggedWorkingSet = session.exerciseLogs
+            .flatMap(\.sets)
+            .contains { $0.kind == .working && $0.actualReps != nil }
+        let nextProgramDay = try Self.nextProgramDay(from: modelContext, after: session, simulatedStatus: .completed)
+
+        return FinishWorkoutPreview(
+            perExercise: evaluations.map { evaluation in
+                FinishWorkoutPreview.PerExercise(
+                    exerciseName: evaluation.exerciseName,
+                    setSummary: evaluation.setSummary,
+                    oldWeightKg: evaluation.oldWeightKg,
+                    newWeightKg: evaluation.newWeightKg,
+                    stalledCount: evaluation.stalledCount,
+                    state: evaluation.state
+                )
+            },
+            pendingWorkingSetCount: pendingWorkingSetCount,
+            canApplyProgression: pendingWorkingSetCount == 0,
+            hasAnyLoggedWorkingSet: hasAnyLoggedWorkingSet,
+            nextProgramDayName: nextProgramDay?.name,
+            nextProgramExerciseNames: nextProgramDay?.orderedSlots.compactMap { $0.exerciseProgression?.exercise?.name } ?? []
+        )
+    }
+
+    func finalize(_ session: WorkoutSession, now: Date = .now) throws -> FinalizeResult {
+        let pendingWorkingSetCount = session.exerciseLogs
+            .flatMap(\.sets)
+            .filter { $0.kind == .working && $0.actualReps == nil }
+            .count
+        guard pendingWorkingSetCount == 0 else {
+            throw DraftSessionError.cannotFinalizeWithPendingSets(count: pendingWorkingSetCount)
+        }
+
+        let progressionsByExerciseKey = try Self.exerciseProgressionsByExerciseKey(from: modelContext)
+        let evaluations = evaluate(session, progressionsByExerciseKey: progressionsByExerciseKey)
+        var perExercise: [FinalizeResult.PerExercise] = []
+        perExercise.reserveCapacity(evaluations.count)
+
+        for evaluation in evaluations {
+            guard let progression = progressionsByExerciseKey[evaluation.exerciseKey] else { continue }
+
+            switch evaluation.state {
+            case .willProgress, .unchanged:
+                progression.currentWeightKg = evaluation.newWeightKg
+                progression.stalledCount = 0
+                progression.lastProgressionAt = now
+
+                if !evaluation.newWeightKg.isApprox(evaluation.oldWeightKg) {
+                    let event = ProgressionEvent(
+                        exerciseProgression: progression,
+                        session: session,
+                        oldWeightKg: evaluation.oldWeightKg,
+                        newWeightKg: evaluation.newWeightKg,
+                        reason: .success,
+                        createdAt: now
+                    )
+                    modelContext.insert(event)
+                }
+            case .stalled:
+                progression.stalledCount += 1
+            case .incomplete:
+                break
+            }
+
+            perExercise.append(.init(
+                exerciseName: evaluation.exerciseName,
+                oldWeightKg: evaluation.oldWeightKg,
+                newWeightKg: evaluation.newWeightKg,
+                didProgress: !evaluation.newWeightKg.isApprox(evaluation.oldWeightKg),
+                stalledCount: progression.stalledCount
+            ))
+        }
+
         session.status = .completed
         session.endedAt = now
-        // TODO: Apply session progression in Phase 4c before saving.
-        persistChanges(action: "finalize draft session")
+        try modelContext.save()
+
+        let orderedExerciseKeys = Self.orderedExerciseKeys(in: session)
+        let orderedPerExercise = perExercise.sorted { lhs, rhs in
+            let lhsIndex = orderedExerciseKeys.firstIndex(of: lhs.exerciseName) ?? .max
+            let rhsIndex = orderedExerciseKeys.firstIndex(of: rhs.exerciseName) ?? .max
+            return lhsIndex < rhsIndex
+        }
+        let nextProgramDayName = try Self.nextProgramDay(from: modelContext, after: session, simulatedStatus: .completed)?.name
+        return FinalizeResult(perExercise: orderedPerExercise, nextProgramDayName: nextProgramDayName)
     }
 
     private func persistChanges(action: String) {
@@ -148,5 +276,147 @@ struct DraftSessionService {
         }
 
         return WeightLoading(barWeightKg: user.barWeightKg, inventory: user.orderedPlates)
+    }
+
+    private static func exerciseProgressionsByExerciseKey(from modelContext: ModelContext) throws -> [String: ExerciseProgression] {
+        let progressions = try modelContext.fetch(FetchDescriptor<ExerciseProgression>())
+        return Dictionary(
+            uniqueKeysWithValues: progressions.compactMap { progression in
+                progression.exercise.map { ($0.key, progression) }
+            }
+        )
+    }
+
+    private func evaluate(
+        _ session: WorkoutSession,
+        progressionsByExerciseKey: [String: ExerciseProgression]
+    ) -> [ExerciseEvaluation] {
+        var groupedLogs: [String: [ExerciseLog]] = [:]
+        var orderedExerciseKeys: [String] = []
+
+        for exerciseLog in session.exerciseLogs {
+            guard let exerciseKey = exerciseLog.exercise?.key else { continue }
+            if groupedLogs[exerciseKey] == nil {
+                orderedExerciseKeys.append(exerciseKey)
+            }
+            groupedLogs[exerciseKey, default: []].append(exerciseLog)
+        }
+
+        return orderedExerciseKeys.compactMap { exerciseKey in
+            guard
+                let exerciseLogs = groupedLogs[exerciseKey],
+                let progression = progressionsByExerciseKey[exerciseKey]
+            else {
+                return nil
+            }
+
+            let orderedWorkingSets = exerciseLogs
+                .flatMap(\.sets)
+                .filter { $0.kind == .working }
+                .sorted { lhs, rhs in
+                    if lhs.log?.id != rhs.log?.id {
+                        return lhs.log?.id.uuidString ?? "" < rhs.log?.id.uuidString ?? ""
+                    }
+                    return lhs.index < rhs.index
+                }
+
+            let oldWeightKg = progression.currentWeightKg
+            let setSummary = orderedWorkingSets
+                .map { set in
+                    set.actualReps.map(String.init) ?? "—"
+                }
+                .joined(separator: ", ")
+
+            if orderedWorkingSets.contains(where: { $0.actualReps == nil }) {
+                return ExerciseEvaluation(
+                    exerciseKey: exerciseKey,
+                    exerciseName: exerciseLogs[0].exerciseNameSnapshot,
+                    setSummary: setSummary,
+                    oldWeightKg: oldWeightKg,
+                    newWeightKg: oldWeightKg,
+                    stalledCount: progression.stalledCount,
+                    state: .incomplete
+                )
+            }
+
+            let outcome = Progression.evaluate(
+                workingSets: orderedWorkingSets.map { WorkingSetResult(targetReps: $0.targetReps, actualReps: $0.actualReps ?? 0) },
+                currentWeightKg: oldWeightKg,
+                incrementKg: progression.incrementKg,
+                weightLoading: weightLoading
+            )
+
+            switch outcome {
+            case let .advanced(newWeightKg):
+                return ExerciseEvaluation(
+                    exerciseKey: exerciseKey,
+                    exerciseName: exerciseLogs[0].exerciseNameSnapshot,
+                    setSummary: setSummary,
+                    oldWeightKg: oldWeightKg,
+                    newWeightKg: newWeightKg,
+                    stalledCount: 0,
+                    state: newWeightKg.isApprox(oldWeightKg) ? .unchanged : .willProgress
+                )
+            case .stalled:
+                return ExerciseEvaluation(
+                    exerciseKey: exerciseKey,
+                    exerciseName: exerciseLogs[0].exerciseNameSnapshot,
+                    setSummary: setSummary,
+                    oldWeightKg: oldWeightKg,
+                    newWeightKg: oldWeightKg,
+                    stalledCount: progression.stalledCount + 1,
+                    state: .stalled
+                )
+            case .noWorkingSetsLogged:
+                return ExerciseEvaluation(
+                    exerciseKey: exerciseKey,
+                    exerciseName: exerciseLogs[0].exerciseNameSnapshot,
+                    setSummary: setSummary,
+                    oldWeightKg: oldWeightKg,
+                    newWeightKg: oldWeightKg,
+                    stalledCount: progression.stalledCount,
+                    state: .unchanged
+                )
+            }
+        }
+    }
+
+    private static func nextProgramDay(
+        from modelContext: ModelContext,
+        after session: WorkoutSession,
+        simulatedStatus: SessionStatus
+    ) throws -> ProgramDay? {
+        let days = try modelContext.fetch(FetchDescriptor<ProgramDay>(sortBy: [SortDescriptor(\ProgramDay.orderInRotation)]))
+        let simulated = WorkoutSession(
+            id: session.id,
+            workoutDayID: session.workoutDayID,
+            timeZoneIdentifierAtStart: session.timeZoneIdentifierAtStart,
+            startedAt: session.startedAt,
+            endedAt: session.endedAt,
+            programDay: session.programDay ?? ProgramDay(name: "Workout", orderInRotation: 0),
+            exerciseLogs: session.exerciseLogs,
+            status: simulatedStatus
+        )
+        return WorkoutScheduler.nextProgramDay(from: days, mostRecentCompleted: simulated)
+    }
+
+    private static func orderedExerciseKeys(in session: WorkoutSession) -> [String] {
+        session.exerciseLogs.compactMap { $0.exerciseNameSnapshot }
+    }
+}
+
+private struct ExerciseEvaluation {
+    let exerciseKey: String
+    let exerciseName: String
+    let setSummary: String
+    let oldWeightKg: Double
+    let newWeightKg: Double
+    let stalledCount: Int
+    let state: FinishWorkoutPreview.State
+}
+
+private extension Double {
+    func isApprox(_ other: Double) -> Bool {
+        abs(self - other) <= 0.0001
     }
 }

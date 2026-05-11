@@ -103,8 +103,8 @@ struct ProgressionTests {
         )
     }
 
-    @Test("unloadable increments use the next higher loadable weight")
-    func unloadableIncrementUsesNextHigherWeight() {
+    @Test("unloadable increments round down to the nearest loadable weight")
+    func unloadableIncrementRoundsDown() {
         let loading = WeightLoading(barWeightKg: 20, inventory: standardInventory())
 
         #expect(
@@ -113,7 +113,7 @@ struct ProgressionTests {
                 currentWeightKg: 60,
                 incrementKg: 1.25,
                 weightLoading: loading
-            ) == .advanced(newWeightKg: 62.5)
+            ) == .advanced(newWeightKg: 60)
         )
     }
 

@@ -17,6 +17,15 @@ final class TodayViewModel {
     private(set) var isLoading = false
     private(set) var isProgramDayLocked = false
     private(set) var programDayLockHint: String?
+    private(set) var finishWorkoutPreview: FinishWorkoutPreview?
+
+    var canOpenFinishSheet: Bool {
+        finishWorkoutPreview?.hasAnyLoggedWorkingSet ?? false
+    }
+
+    var finishWorkoutHint: String? {
+        canOpenFinishSheet ? nil : "Log at least one working set to finish"
+    }
 
     @ObservationIgnored
     private var modelContext: ModelContext?
@@ -66,6 +75,7 @@ final class TodayViewModel {
             draftPlan = nil
             isProgramDayLocked = false
             programDayLockHint = nil
+            finishWorkoutPreview = nil
             return
         }
 
@@ -93,11 +103,13 @@ final class TodayViewModel {
                 draftPlan = DraftSessionPlan(session: persistedDraft)
                 isProgramDayLocked = true
                 programDayLockHint = makeProgramDayLockHint(for: persistedDraft)
+                finishWorkoutPreview = try draftService.finishWorkoutPreview(for: persistedDraft)
                 return
             } else {
                 activeDraftSessionID = nil
                 isProgramDayLocked = false
                 programDayLockHint = nil
+                finishWorkoutPreview = nil
             }
 
             if let currentSelection = selectedProgramDay,
@@ -119,6 +131,7 @@ final class TodayViewModel {
             draftPlan = nil
             isProgramDayLocked = false
             programDayLockHint = nil
+            finishWorkoutPreview = nil
         }
     }
 
@@ -343,6 +356,11 @@ final class TodayViewModel {
         draftPlan = DraftSessionPlan(session: session)
         isProgramDayLocked = true
         programDayLockHint = makeProgramDayLockHint(for: session)
+        if let modelContext, let draftService = try? DraftSessionService(modelContext: modelContext) {
+            finishWorkoutPreview = try? draftService.finishWorkoutPreview(for: session)
+        } else {
+            finishWorkoutPreview = nil
+        }
     }
 
     private func makeProgramDayLockHint(for session: WorkoutSession) -> String {
@@ -469,6 +487,37 @@ final class TodayViewModel {
         default:
             return false
         }
+    }
+
+    func finalizeCurrentSession() throws -> FinalizeResult {
+        guard let modelContext else {
+            return FinalizeResult(perExercise: [], nextProgramDayName: nil)
+        }
+
+        let draftService = try DraftSessionService(modelContext: modelContext)
+        guard let session = activeDraftSession(using: draftService) else {
+            return FinalizeResult(perExercise: [], nextProgramDayName: nil)
+        }
+
+        let result = try draftService.finalize(session, now: now)
+        activeDraftSessionID = nil
+        reopenedDraftID = nil
+        selectedProgramDay = nil
+        refresh()
+        return result
+    }
+
+    func endCurrentSessionWithoutProgression() throws {
+        guard let modelContext else { return }
+
+        let draftService = try DraftSessionService(modelContext: modelContext)
+        guard let session = activeDraftSession(using: draftService) else { return }
+
+        draftService.endWithoutProgression(session, now: now)
+        activeDraftSessionID = nil
+        reopenedDraftID = nil
+        selectedProgramDay = nil
+        refresh()
     }
 }
 

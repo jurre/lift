@@ -69,8 +69,14 @@ struct UndoRestoreAction: Equatable {
 
 struct SnackbarView: View {
     let message: String
-    let actionTitle: String
-    let action: () -> Void
+    let actionTitle: String?
+    let action: (() -> Void)?
+
+    init(message: String, actionTitle: String? = nil, action: (() -> Void)? = nil) {
+        self.message = message
+        self.actionTitle = actionTitle
+        self.action = action
+    }
 
     var body: some View {
         HStack(spacing: 12) {
@@ -81,9 +87,11 @@ struct SnackbarView: View {
 
             Spacer(minLength: 8)
 
-            Button(actionTitle, action: action)
-                .font(.subheadline.weight(.semibold))
-                .foregroundStyle(.white)
+            if let actionTitle, let action {
+                Button(actionTitle, action: action)
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundStyle(.white)
+            }
         }
         .padding(.horizontal, 16)
         .padding(.vertical, 14)

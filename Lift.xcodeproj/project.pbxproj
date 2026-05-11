@@ -14,6 +14,7 @@
 		1909F06F476D2EB332EDAC57 /* DraftSessionService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1909F06E476D2EB332EDAC57 /* DraftSessionService.swift */; };
 		2543ECFA7A45B445EC621BE4 /* LiftUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E31664A376C2F2346FB1E9BF /* LiftUITests.swift */; };
 		28B5A4973A39E310EED3F72B /* DraftSessionFactoryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D6CF4E83A2900BED7CCCAD24 /* DraftSessionFactoryTests.swift */; };
+		28C6A8B9D4E5F60123456789 /* DraftSessionFinalizeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 28C6A8B9D4E5F60123456788 /* DraftSessionFinalizeTests.swift */; };
 		28D4213FEF024A9879BC20AD /* ProgressionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CB8A6FC2E056A981B33D46B1 /* ProgressionTests.swift */; };
 		2BFA3D3B09A14E4209B23624 /* DraftSessionServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BFA3D3A09A14E4209B23624 /* DraftSessionServiceTests.swift */; };
 		3BC469FDC98258B7EF447FD0 /* ModelEnums.swift in Sources */ = {isa = PBXBuildFile; fileRef = 67D2226119EB06025BD6EBF1 /* ModelEnums.swift */; };
@@ -78,6 +79,7 @@
 		22981D9EA5B338D2E9E3C194 /* LiftApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiftApp.swift; sourceTree = "<group>"; };
 		22A593B939534F5A21E30958 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		22AD59C08B881C82D9B07B88 /* Lift.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = Lift.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		28C6A8B9D4E5F60123456788 /* DraftSessionFinalizeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DraftSessionFinalizeTests.swift; sourceTree = "<group>"; };
 		2BFA3D3A09A14E4209B23624 /* DraftSessionServiceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DraftSessionServiceTests.swift; sourceTree = "<group>"; };
 		4913119B91CF5611AD6E4046 /* User.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = User.swift; sourceTree = "<group>"; };
 		503164419B4BB32A2E596A0A /* WeightLoading.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeightLoading.swift; sourceTree = "<group>"; };
@@ -242,6 +244,7 @@
 			isa = PBXGroup;
 			children = (
 				D6CF4E83A2900BED7CCCAD24 /* DraftSessionFactoryTests.swift */,
+				28C6A8B9D4E5F60123456788 /* DraftSessionFinalizeTests.swift */,
 				2BFA3D3A09A14E4209B23624 /* DraftSessionServiceTests.swift */,
 				F585B0C6A8310D5182B85C69 /* DraftReopenCoordinatorTests.swift */,
 				22A593B939534F5A21E30958 /* Info.plist */,
@@ -376,6 +379,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				28B5A4973A39E310EED3F72B /* DraftSessionFactoryTests.swift in Sources */,
+				28C6A8B9D4E5F60123456789 /* DraftSessionFinalizeTests.swift in Sources */,
 				2BFA3D3B09A14E4209B23624 /* DraftSessionServiceTests.swift in Sources */,
 				F585B0C7A8310D5182B85C69 /* DraftReopenCoordinatorTests.swift in Sources */,
 				8887D21F78FAC8F43F68AAB8 /* InvariantTests.swift in Sources */,

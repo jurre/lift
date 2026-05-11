@@ -25,17 +25,7 @@ enum Progression {
 
         let proposed = currentWeightKg + incrementKg
         let rounded = weightLoading.nearestLoadable(proposed)
-        if rounded > currentWeightKg + 0.0001 {
-            return .advanced(newWeightKg: rounded)
-        }
-
-        // If the requested increment lands on a tie and rounds back down to the current
-        // working weight, keep progression moving by taking the next heavier loadable step.
-        if let nextHigher = weightLoading.nextHigherLoadable(currentWeightKg) {
-            return .advanced(newWeightKg: nextHigher)
-        }
-
-        return .advanced(newWeightKg: currentWeightKg)
+        return .advanced(newWeightKg: rounded)
     }
 
     static func deload(

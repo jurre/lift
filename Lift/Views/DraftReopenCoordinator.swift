@@ -9,8 +9,14 @@ final class DraftReopenCoordinator {
     private var modelContext: ModelContext?
 
     var pendingDraft: WorkoutSession?
+    var pendingDraftPreview: FinishWorkoutPreview?
     var resumedDraftID: UUID?
     var refreshToken = 0
+    var confirmationMessage: String?
+
+    var canFinalizePendingDraft: Bool {
+        pendingDraftPreview?.canApplyProgression ?? false
+    }
 
     init(modelContext: ModelContext? = nil) {
         self.modelContext = modelContext
@@ -23,24 +29,35 @@ final class DraftReopenCoordinator {
     func load(now: Date = .now, calendar: Calendar = .current) {
         guard let service = makeService() else {
             pendingDraft = nil
+            pendingDraftPreview = nil
             return
         }
 
         let todayID = LocalDay.id(for: now, in: calendar.timeZone)
         pendingDraft = service.allDrafts().first(where: { $0.workoutDayID < todayID })
+        pendingDraftPreview = pendingDraft.flatMap { try? service.finishWorkoutPreview(for: $0) }
     }
 
     func resumePendingDraft() {
         resumedDraftID = pendingDraft?.id
         pendingDraft = nil
+        pendingDraftPreview = nil
         refreshToken += 1
     }
 
     func finalizePendingDraft(now: Date = .now) {
         guard let pendingDraft, let service = makeService() else { return }
-        service.finalize(pendingDraft, now: now)
+        guard canFinalizePendingDraft else { return }
+        do {
+            _ = try service.finalize(pendingDraft, now: now)
+        } catch {
+            assertionFailure("Failed to finalize stale draft: \(error)")
+            return
+        }
         resumedDraftID = nil
         self.pendingDraft = nil
+        pendingDraftPreview = nil
+        confirmationMessage = "Progression applied"
         refreshToken += 1
     }
 
@@ -49,6 +66,8 @@ final class DraftReopenCoordinator {
         service.endWithoutProgression(pendingDraft, now: now)
         resumedDraftID = nil
         self.pendingDraft = nil
+        pendingDraftPreview = nil
+        confirmationMessage = "Workout ended without progression"
         refreshToken += 1
     }
 
@@ -57,7 +76,16 @@ final class DraftReopenCoordinator {
         service.discard(pendingDraft)
         resumedDraftID = nil
         self.pendingDraft = nil
+        pendingDraftPreview = nil
         refreshToken += 1
+    }
+
+    func presentConfirmation(_ message: String) {
+        confirmationMessage = message
+    }
+
+    func clearConfirmationMessage() {
+        confirmationMessage = nil
     }
 
     private func makeService() -> DraftSessionService? {
@@ -82,6 +110,10 @@ struct DraftReopenSheet: View {
                     .foregroundStyle(.secondary)
 
                 VStack(spacing: 12) {
+                    if let preview = coordinator.pendingDraftPreview {
+                        DraftFinishPreviewSummary(preview: preview, compact: true)
+                    }
+
                     Button("Resume") {
                         coordinator.resumePendingDraft()
                     }
@@ -91,7 +123,7 @@ struct DraftReopenSheet: View {
                         coordinator.finalizePendingDraft()
                     }
                     .buttonStyle(.bordered)
-                    .disabled(!(coordinator.pendingDraft?.allWorkingSetsComplete ?? false))
+                    .disabled(!coordinator.canFinalizePendingDraft)
 
                     Button("End without progression") {
                         coordinator.endPendingDraftWithoutProgression()

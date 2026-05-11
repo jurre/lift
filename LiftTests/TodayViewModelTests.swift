@@ -109,6 +109,93 @@ struct TodayViewModelTests {
         #expect(service.currentDraft(now: fixtureDate(), calendar: utcCalendar())?.id == created?.id)
     }
 
+    @Test("finish workout stays disabled until a working set is logged")
+    func finishWorkoutRequiresAtLeastOneLoggedWorkingSet() throws {
+        let container = try makeInMemoryContainer()
+        let context = ModelContext(container)
+        try LiftSeeder().seedIfNeeded(in: context)
+
+        let viewModel = TodayViewModel(
+            modelContext: context,
+            now: fixtureDate(),
+            timeZone: .utc
+        )
+        viewModel.load()
+
+        #expect(viewModel.canOpenFinishSheet == false)
+        #expect(viewModel.finishWorkoutHint == "Log at least one working set to finish")
+
+        let workoutA = try requireDay(named: "Workout A", from: context)
+        let service = try DraftSessionService(modelContext: context)
+        let session = try service.createDraft(for: workoutA, now: fixtureDate(), calendar: utcCalendar())
+        session.exerciseLogs.first?.sets.first(where: { $0.kind == .working })?.actualReps = 5
+        try context.save()
+
+        viewModel.refresh()
+
+        #expect(viewModel.canOpenFinishSheet)
+        #expect(viewModel.finishWorkoutHint == nil)
+        #expect(viewModel.finishWorkoutPreview?.pendingWorkingSetCount == 8)
+        #expect(viewModel.finishWorkoutPreview?.canApplyProgression == false)
+    }
+
+    @Test("finalizeCurrentSession advances today to the next workout and unlocks the picker")
+    func finalizeCurrentSessionAdvancesToNextWorkout() throws {
+        let container = try makeInMemoryContainer()
+        let context = ModelContext(container)
+        try LiftSeeder().seedIfNeeded(in: context)
+
+        let workoutA = try requireDay(named: "Workout A", from: context)
+        let service = try DraftSessionService(modelContext: context)
+        let session = try service.createDraft(for: workoutA, now: fixtureDate(), calendar: utcCalendar())
+        for exerciseLog in session.exerciseLogs {
+            for set in exerciseLog.sets where set.kind == .working {
+                set.actualReps = set.targetReps
+            }
+        }
+        try context.save()
+
+        let viewModel = TodayViewModel(
+            modelContext: context,
+            now: fixtureDate(),
+            timeZone: .utc
+        )
+        viewModel.load()
+
+        let result = try viewModel.finalizeCurrentSession()
+
+        #expect(result.nextProgramDayName == "Workout B")
+        #expect(viewModel.selectedProgramDay?.name == "Workout B")
+        #expect(viewModel.isProgramDayLocked == false)
+        #expect(viewModel.finishWorkoutPreview == nil)
+    }
+
+    @Test("endCurrentSessionWithoutProgression keeps the same workout selected and unlocks the picker")
+    func endCurrentSessionWithoutProgressionKeepsSameWorkout() throws {
+        let container = try makeInMemoryContainer()
+        let context = ModelContext(container)
+        try LiftSeeder().seedIfNeeded(in: context)
+
+        let workoutA = try requireDay(named: "Workout A", from: context)
+        let service = try DraftSessionService(modelContext: context)
+        let session = try service.createDraft(for: workoutA, now: fixtureDate(), calendar: utcCalendar())
+        session.exerciseLogs.first?.sets.first(where: { $0.kind == .working })?.actualReps = 5
+        try context.save()
+
+        let viewModel = TodayViewModel(
+            modelContext: context,
+            now: fixtureDate(),
+            timeZone: .utc
+        )
+        viewModel.load()
+
+        try viewModel.endCurrentSessionWithoutProgression()
+
+        #expect(viewModel.selectedProgramDay?.name == "Workout A")
+        #expect(viewModel.isProgramDayLocked == false)
+        #expect(viewModel.finishWorkoutPreview == nil)
+    }
+
     private func requireDay(named name: String, from context: ModelContext) throws -> ProgramDay {
         let days = try fetchAll(ProgramDay.self, from: context)
         guard let day = days.first(where: { $0.name == name }) else {
