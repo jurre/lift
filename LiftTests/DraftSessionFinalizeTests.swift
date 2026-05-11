@@ -19,7 +19,7 @@ struct DraftSessionFinalizeTests {
         let result = try service.finalize(session, now: fixture.end)
 
         let squatProgression = try fixture.requireProgression(forExerciseKey: "squat")
-        #expect(squatProgression.currentWeightKg == 61.25)
+        #expect(squatProgression.currentWeightKg == 62.5)
         #expect(squatProgression.stalledCount == 0)
         #expect(squatProgression.lastProgressionAt == fixture.end)
         #expect(session.status == .completed)
@@ -29,7 +29,7 @@ struct DraftSessionFinalizeTests {
         let squatEvent = try #require(events.first(where: { $0.exerciseProgression?.exercise?.key == "squat" }))
         #expect(squatEvent.reason == .success)
         #expect(squatEvent.oldWeightKg == 60)
-        #expect(squatEvent.newWeightKg == 61.25)
+        #expect(squatEvent.newWeightKg == 62.5)
         #expect(squatEvent.session?.id == session.id)
         #expect(result.perExercise.first(where: { $0.exerciseName == "Squat" })?.didProgress == true)
         #expect(result.nextProgramDayName == "Workout B")
@@ -111,14 +111,14 @@ struct DraftSessionFinalizeTests {
         let result = try service.finalize(session, now: fixture.end)
 
         let squatProgression = try fixture.requireProgression(forExerciseKey: "squat")
-        #expect(squatProgression.currentWeightKg == 61.25)
+        #expect(squatProgression.currentWeightKg == 62.5)
         let squatEvents = try fixture.fetchProgressionEvents().filter { $0.exerciseProgression?.exercise?.key == "squat" }
         #expect(squatEvents.count == 1)
         #expect(result.perExercise.filter { $0.exerciseName == "Squat" }.count == 1)
     }
 
-    @Test("success snaps unloadable increments down to the nearest loadable weight")
-    func finalizeRoundsUnloadableSuccessDown() throws {
+    @Test("success snaps unloadable increments up to the next loadable weight")
+    func finalizeRoundsUnloadableSuccessUpToNextLoadable() throws {
         let fixture = try makeFixture(plateWeights: [25, 20, 15, 10, 5])
         let workoutA = try fixture.requireDay(named: "Workout A")
         fixture.setWeight(60, increment: 1.25, stalledCount: 0, forExerciseKey: "squat")
@@ -129,15 +129,46 @@ struct DraftSessionFinalizeTests {
 
         let result = try service.finalize(session, now: fixture.end)
 
+        // Inventory has no plates below 5kg; pair-loaded steps are 10kg, so next loadable above 60 is 70.
         let squatProgression = try fixture.requireProgression(forExerciseKey: "squat")
-        #expect(squatProgression.currentWeightKg == 60)
+        #expect(squatProgression.currentWeightKg == 70)
         #expect(squatProgression.lastProgressionAt == fixture.end)
-        #expect(try fixture.fetchProgressionEvents().contains(where: { $0.exerciseProgression?.exercise?.key == "squat" }) == false)
+        let squatEvent = try #require(
+            try fixture.fetchProgressionEvents()
+                .first(where: { $0.exerciseProgression?.exercise?.key == "squat" })
+        )
+        #expect(squatEvent.oldWeightKg == 60)
+        #expect(squatEvent.newWeightKg == 70)
         let squat = try #require(result.perExercise.first(where: { $0.exerciseName == "Squat" }))
         #expect(squat.oldWeightKg == 60)
-        #expect(squat.newWeightKg == 60)
-        #expect(squat.didProgress == false)
+        #expect(squat.newWeightKg == 70)
+        #expect(squat.didProgress == true)
         #expect(squat.stalledCount == 0)
+    }
+
+    @Test("regression: real-world default seed advances Squat from the bar even with the partner's small increment")
+    func finalizeAdvancesFromBarWithSmallIncrementOnDefaultPlateInventory() throws {
+        let fixture = try makeFixture()
+        let workoutA = try fixture.requireDay(named: "Workout A")
+        fixture.setWeight(20, increment: 1.25, stalledCount: 0, forExerciseKey: "squat")
+
+        let service = try fixture.makeService()
+        let session = try service.createDraft(for: workoutA, now: fixture.start, calendar: fixture.calendar)
+        fixture.fillWorkingSets(in: session, repsByExercise: ["Squat": [5, 5, 5], "Bench": [5, 5, 5], "Row": [5, 5, 5]])
+
+        let result = try service.finalize(session, now: fixture.end)
+
+        let squatProgression = try fixture.requireProgression(forExerciseKey: "squat")
+        #expect(squatProgression.currentWeightKg == 22.5)
+        let squatEvent = try #require(
+            try fixture.fetchProgressionEvents()
+                .first(where: { $0.exerciseProgression?.exercise?.key == "squat" })
+        )
+        #expect(squatEvent.oldWeightKg == 20)
+        #expect(squatEvent.newWeightKg == 22.5)
+        let squat = try #require(result.perExercise.first(where: { $0.exerciseName == "Squat" }))
+        #expect(squat.didProgress == true)
+        #expect(squat.newWeightKg == 22.5)
     }
 
     @Test("endWithoutProgression leaves progressions and events untouched")
@@ -199,7 +230,7 @@ struct DraftSessionFinalizeTests {
         let result = try service.finalize(session, now: fixture.end)
 
         let expectedByExercise: [String: (old: Double, new: Double, progressed: Bool, stalled: Int)] = [
-            "Squat": (60, 61.25, true, 0),
+            "Squat": (60, 62.5, true, 0),
             "Bench": (42.5, 42.5, false, 2),
             "Row": (45, 45, false, 3)
         ]
@@ -227,7 +258,7 @@ struct DraftSessionFinalizeTests {
         #expect(result.nextProgramDayName == "Workout B")
     }
 
-    private func makeFixture(plateWeights: [Double] = [25, 20, 15, 10, 5, 2.5, 1.25, 0.625]) throws -> Fixture {
+    private func makeFixture(plateWeights: [Double] = [25, 20, 15, 10, 5, 2.5, 1.25]) throws -> Fixture {
         let container = try makeInMemoryContainer()
         let context = ModelContext(container)
         try LiftSeeder().seedIfNeeded(in: context)

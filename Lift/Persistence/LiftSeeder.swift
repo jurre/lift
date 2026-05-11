@@ -7,7 +7,7 @@ struct LiftSeeder {
             return
         }
 
-        let user = User(displayName: "", barWeightKg: 20, defaultIncrementKg: 1.25)
+        let user = User(displayName: "", barWeightKg: 20, defaultIncrementKg: 2.5)
         context.insert(user)
 
         let exercises = [

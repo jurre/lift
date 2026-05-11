@@ -103,8 +103,8 @@ struct ProgressionTests {
         )
     }
 
-    @Test("unloadable increments round down to the nearest loadable weight")
-    func unloadableIncrementRoundsDown() {
+    @Test("unloadable increments snap up to the next loadable weight so success always advances")
+    func unloadableIncrementSnapsUpToNextLoadable() {
         let loading = WeightLoading(barWeightKg: 20, inventory: standardInventory())
 
         #expect(
@@ -113,7 +113,53 @@ struct ProgressionTests {
                 currentWeightKg: 60,
                 incrementKg: 1.25,
                 weightLoading: loading
-            ) == .advanced(newWeightKg: 60)
+            ) == .advanced(newWeightKg: 62.5)
+        )
+    }
+
+    @Test("regression: starting at the bar with the user's preferred small increment still advances on success")
+    func smallIncrementAtBarAdvancesToNextLoadable() {
+        let loading = WeightLoading(barWeightKg: 20, inventory: standardInventory())
+
+        #expect(
+            Progression.evaluate(
+                workingSets: [.init(targetReps: 5, actualReps: 5), .init(targetReps: 5, actualReps: 5), .init(targetReps: 5, actualReps: 5)],
+                currentWeightKg: 20,
+                incrementKg: 1.25,
+                weightLoading: loading
+            ) == .advanced(newWeightKg: 22.5)
+        )
+    }
+
+    @Test("excessively large increments overshoot to the next loadable weight rather than landing exactly")
+    func largeIncrementSnapsUpToNextLoadable() {
+        let loading = WeightLoading(barWeightKg: 20, inventory: standardInventory())
+
+        #expect(
+            Progression.evaluate(
+                workingSets: [.init(targetReps: 5, actualReps: 5), .init(targetReps: 5, actualReps: 5), .init(targetReps: 5, actualReps: 5)],
+                currentWeightKg: 60,
+                incrementKg: 11,
+                weightLoading: loading
+            ) == .advanced(newWeightKg: 72.5)
+        )
+    }
+
+    @Test("at the gym ceiling success stays at current weight rather than going backwards")
+    func atGymCeilingStaysAtCurrentWeight() {
+        let loading = WeightLoading(
+            barWeightKg: 20,
+            inventory: [PlateInventoryItem(weightKg: 5, countTotal: 2)]
+        )
+
+        // Loadable: 20, 30. Current = max = 30.
+        #expect(
+            Progression.evaluate(
+                workingSets: [.init(targetReps: 5, actualReps: 5)],
+                currentWeightKg: 30,
+                incrementKg: 2.5,
+                weightLoading: loading
+            ) == .advanced(newWeightKg: 30)
         )
     }
 

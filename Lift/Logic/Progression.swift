@@ -12,6 +12,26 @@ enum ProgressionOutcome: Equatable, Sendable {
 }
 
 enum Progression {
+    /// Evaluates whether the working sets justify advancing the weight, and if so,
+    /// returns the new weight rounded UP to the next loadable value.
+    ///
+    /// The rounding policy here is intentionally different from `WeightLoading.nearestLoadable`,
+    /// which rounds toward the nearest value (and rounds down on ties). For progression we want:
+    ///
+    /// 1. If `current + increment` is exactly loadable → use it.
+    /// 2. Otherwise, snap UP to the next loadable weight strictly greater than `current + increment`.
+    /// 3. If no loadable weight exists at or above `current + increment` (i.e. `current + increment`
+    ///    exceeds the gym's max loadable weight), fall back to the smallest loadable weight strictly
+    ///    greater than `current` so the user still advances when there is any headroom.
+    /// 4. If the user is already at the gym's max loadable weight, return `current` unchanged so the
+    ///    session can finish cleanly without writing a meaningless progression event.
+    ///
+    /// Why round UP rather than down: a successful session must always result in forward progress
+    /// when the equipment allows it. Rounding down on ties (the `nearestLoadable` policy, which is
+    /// correct for the plate calculator) silently turns a 1.25kg increment with 1.25kg pair plates
+    /// into a no-op — the proposed weight ties between current and current+2.5, and ties favor the
+    /// lower value, so the user never moves. Rounding up always honors the spirit of "you earned a
+    /// jump," even if the smallest physically loadable jump is larger than the configured increment.
     static func evaluate(
         workingSets: [WorkingSetResult],
         currentWeightKg: Double,
@@ -24,8 +44,19 @@ enum Progression {
         }
 
         let proposed = currentWeightKg + incrementKg
-        let rounded = weightLoading.nearestLoadable(proposed)
-        return .advanced(newWeightKg: rounded)
+        if weightLoading.isLoadable(proposed) {
+            return .advanced(newWeightKg: proposed)
+        }
+
+        if let higher = weightLoading.nextHigherLoadable(proposed) {
+            return .advanced(newWeightKg: higher)
+        }
+
+        if let smallestAboveCurrent = weightLoading.nextHigherLoadable(currentWeightKg) {
+            return .advanced(newWeightKg: smallestAboveCurrent)
+        }
+
+        return .advanced(newWeightKg: currentWeightKg)
     }
 
     static func deload(
