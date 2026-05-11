@@ -1,4 +1,5 @@
 import Foundation
+import CryptoKit
 import SwiftData
 
 @MainActor
@@ -19,12 +20,30 @@ struct DraftSessionFactory {
                 continue
             }
 
+            let exerciseLogID = stableUUID(
+                namespace: "exercise-log",
+                components: [
+                    LocalDay.id(for: startedAt, in: timeZone),
+                    timeZone.identifier,
+                    programDay.name,
+                    String(slot.order),
+                    exercise.key
+                ]
+            )
+
             let warmups = warmupCalculator
                 .warmupSets(forWorkingWeightKg: progression.currentWeightKg)
                 .enumerated()
                 .map { index, set in
                     DraftSet(
-                        id: UUID(),
+                        id: stableUUID(
+                            namespace: "set",
+                            components: [
+                                exerciseLogID.uuidString,
+                                SetKind.warmup.rawValue,
+                                String(index)
+                            ]
+                        ),
                         kind: .warmup,
                         index: index,
                         weightKg: set.weightKg,
@@ -34,7 +53,14 @@ struct DraftSessionFactory {
 
             let workingSets = (0..<progression.workingSets).map { index in
                 DraftSet(
-                    id: UUID(),
+                    id: stableUUID(
+                        namespace: "set",
+                        components: [
+                            exerciseLogID.uuidString,
+                            SetKind.working.rawValue,
+                            String(index)
+                        ]
+                    ),
                     kind: .working,
                     index: index,
                     weightKg: progression.currentWeightKg,
@@ -43,7 +69,7 @@ struct DraftSessionFactory {
             }
 
             exerciseLogs.append(DraftExerciseLog(
-                id: UUID(),
+                id: exerciseLogID,
                 exercise: exercise,
                 exerciseNameSnapshot: exercise.name,
                 targetWeightKgSnapshot: progression.currentWeightKg,
@@ -54,7 +80,15 @@ struct DraftSessionFactory {
         }
 
         return DraftSessionPlan(
-            id: UUID(),
+            id: stableUUID(
+                namespace: "session",
+                components: [
+                    LocalDay.id(for: startedAt, in: timeZone),
+                    timeZone.identifier,
+                    programDay.name,
+                    startedAt.formatted(.iso8601)
+                ]
+            ),
             workoutDayID: LocalDay.id(for: startedAt, in: timeZone),
             timeZoneIdentifier: timeZone.identifier,
             startedAt: startedAt,
@@ -75,6 +109,19 @@ struct DraftSessionFactory {
             timeZone: timeZone,
             warmupCalculator: warmupCalculator
         )
+    }
+
+    private func stableUUID(namespace: String, components: [String]) -> UUID {
+        let seed = ([namespace] + components).joined(separator: "|")
+        let digest = Insecure.SHA1.hash(data: Data(seed.utf8))
+        let bytes = Array(digest.prefix(16))
+        let uuid = uuid_t(
+            bytes[0], bytes[1], bytes[2], bytes[3],
+            bytes[4], bytes[5], bytes[6], bytes[7],
+            bytes[8], bytes[9], bytes[10], bytes[11],
+            bytes[12], bytes[13], bytes[14], bytes[15]
+        )
+        return UUID(uuid: uuid)
     }
 }
 

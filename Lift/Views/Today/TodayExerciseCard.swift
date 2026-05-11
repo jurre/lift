@@ -3,8 +3,13 @@ import SwiftUI
 struct TodayExerciseCard: View {
     let exerciseLog: DraftExerciseLog
     let plateSuggestion: String
+    let onTapSet: (UUID) -> Void
+    let onEditWorkingWeight: (Double) -> Void
+    let onEditSetWeight: (UUID, Double) -> Void
+    let onDeleteSet: (UUID) -> Void
 
     @State private var isShowingWarmups = false
+    @State private var isShowingWorkingWeightEditor = false
 
     var body: some View {
         VStack(alignment: .leading, spacing: 18) {
@@ -20,8 +25,22 @@ struct TodayExerciseCard: View {
                 Spacer()
 
                 VStack(alignment: .trailing, spacing: 8) {
-                    Text("\(formattedWeight) kg")
-                        .font(.title2.weight(.bold))
+                    HStack(spacing: 8) {
+                        Text("\(formattedWeight) kg")
+                            .font(.title2.weight(.bold))
+
+                        Button {
+                            isShowingWorkingWeightEditor = true
+                        } label: {
+                            Image(systemName: "pencil")
+                                .font(.body.weight(.semibold))
+                                .padding(8)
+                                .background(Color.secondary.opacity(0.12), in: Circle())
+                        }
+                        .buttonStyle(.plain)
+                        .accessibilityLabel("Edit working weight for today")
+                    }
+
                     Text(plateSuggestion)
                         .font(.caption.weight(.semibold))
                         .padding(.horizontal, 10)
@@ -35,7 +54,12 @@ struct TodayExerciseCard: View {
                 DisclosureGroup(isExpanded: $isShowingWarmups) {
                     VStack(alignment: .leading, spacing: 8) {
                         ForEach(warmupSets, id: \.id) { set in
-                            TodaySetRow(set: set)
+                            TodaySetRow(
+                                set: set,
+                                onTap: { onTapSet(set.id) },
+                                onEditWeight: nil,
+                                onDelete: nil
+                            )
                         }
                     }
                     .padding(.top, 8)
@@ -47,12 +71,24 @@ struct TodayExerciseCard: View {
             VStack(alignment: .leading, spacing: 10) {
                 sectionLabel(title: "Working sets", count: workingSets.count)
                 ForEach(workingSets, id: \.id) { set in
-                    TodaySetRow(set: set)
+                    TodaySetRow(
+                        set: set,
+                        onTap: { onTapSet(set.id) },
+                        onEditWeight: { onEditSetWeight(set.id, $0) },
+                        onDelete: { onDeleteSet(set.id) }
+                    )
                 }
             }
         }
         .padding(20)
         .background(.thinMaterial, in: RoundedRectangle(cornerRadius: 24, style: .continuous))
+        .sheet(isPresented: $isShowingWorkingWeightEditor) {
+            WeightEditorSheet(
+                title: "Edit working weight",
+                initialWeightKg: exerciseLog.targetWeightKgSnapshot,
+                onCommit: onEditWorkingWeight
+            )
+        }
     }
 
     private var warmupSets: [DraftSet] {
@@ -88,7 +124,11 @@ struct TodayExerciseCard: View {
     ScrollView {
         TodayExerciseCard(
             exerciseLog: draftPlan.exerciseLogs[0],
-            plateSuggestion: PreviewSupport.todayViewModel().plateSuggestion(for: draftPlan.exerciseLogs[0])
+            plateSuggestion: PreviewSupport.todayViewModel().plateSuggestion(for: draftPlan.exerciseLogs[0]),
+            onTapSet: { _ in },
+            onEditWorkingWeight: { _ in },
+            onEditSetWeight: { _, _ in },
+            onDeleteSet: { _ in }
         )
         .padding()
     }

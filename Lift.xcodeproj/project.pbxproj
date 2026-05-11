@@ -26,6 +26,11 @@
 		850729C01ED08163E4E5E30C /* TestHelpers.swift in Sources */ = {isa = PBXBuildFile; fileRef = E4A25FBD3F292C82F171ECFC /* TestHelpers.swift */; };
 		8887D21F78FAC8F43F68AAB8 /* InvariantTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9272D7D9AE33ABAF6EB59754 /* InvariantTests.swift */; };
 		8CF2A10925D55699DDE0122E /* LocalDayTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 62F85F91F1F85D69FC4F54C6 /* LocalDayTests.swift */; };
+		90F08312C71F4D47B9D18A10 /* SetTapStateMachineTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 90F08311C71F4D47B9D18A10 /* SetTapStateMachineTests.swift */; };
+		90F08314C71F4D47B9D18A10 /* TodayViewModelSetTapTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 90F08313C71F4D47B9D18A10 /* TodayViewModelSetTapTests.swift */; };
+		90F08316C71F4D47B9D18A10 /* UndoCoordinatorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 90F08315C71F4D47B9D18A10 /* UndoCoordinatorTests.swift */; };
+		90F08318C71F4D47B9D18A10 /* SetTapStateMachine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 90F08317C71F4D47B9D18A10 /* SetTapStateMachine.swift */; };
+		90F0831AC71F4D47B9D18A10 /* UndoCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 90F08319C71F4D47B9D18A10 /* UndoCoordinator.swift */; };
 		955FD9EC117745A03EAA96B2 /* WorkoutModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = BFB1DACD54CB5D58B00D13FB /* WorkoutModels.swift */; };
 		9FDF82A6F25EAE71A0F919D2 /* WorkoutSchedulerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C85A8E6388DAAB82A8630DEA /* WorkoutSchedulerTests.swift */; };
 		A06830E8D2CA5F289A512AC3 /* SeedingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7FB774771FCC1764981F1FDA /* SeedingTests.swift */; };
@@ -92,6 +97,11 @@
 		800F3F989762EC3FA20378BE /* FirstRunWizard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FirstRunWizard.swift; sourceTree = "<group>"; };
 		84E40F007D3AE6BC42695050 /* DraftReopenCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DraftReopenCoordinator.swift; sourceTree = "<group>"; };
 		84254148D324D035CD6144E5 /* Progression.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Progression.swift; sourceTree = "<group>"; };
+		90F08311C71F4D47B9D18A10 /* SetTapStateMachineTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SetTapStateMachineTests.swift; sourceTree = "<group>"; };
+		90F08313C71F4D47B9D18A10 /* TodayViewModelSetTapTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TodayViewModelSetTapTests.swift; sourceTree = "<group>"; };
+		90F08315C71F4D47B9D18A10 /* UndoCoordinatorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UndoCoordinatorTests.swift; sourceTree = "<group>"; };
+		90F08317C71F4D47B9D18A10 /* SetTapStateMachine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SetTapStateMachine.swift; sourceTree = "<group>"; };
+		90F08319C71F4D47B9D18A10 /* UndoCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UndoCoordinator.swift; sourceTree = "<group>"; };
 		916972C7CA250F6075D00080 /* TodayViewModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TodayViewModelTests.swift; sourceTree = "<group>"; };
 		9272D7D9AE33ABAF6EB59754 /* InvariantTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InvariantTests.swift; sourceTree = "<group>"; };
 		9C0698BB112A6E99AFE3F8BC /* LocalDay.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalDay.swift; sourceTree = "<group>"; };
@@ -121,6 +131,7 @@
 				5BB4C797A139B8D4A9F574E6 /* TodaySetRow.swift */,
 				D76203446BD19737B6045B12 /* TodayView.swift */,
 				74B9EDBB76D108979AF7414D /* TodayViewModel.swift */,
+				90F08319C71F4D47B9D18A10 /* UndoCoordinator.swift */,
 				5A8C6BE67212A4BC5615427A /* WorkoutPicker.swift */,
 			);
 			path = Today;
@@ -186,6 +197,7 @@
 				724C28029DCBE10D147DE1D1 /* DraftSessionFactory.swift */,
 				9C0698BB112A6E99AFE3F8BC /* LocalDay.swift */,
 				84254148D324D035CD6144E5 /* Progression.swift */,
+				90F08317C71F4D47B9D18A10 /* SetTapStateMachine.swift */,
 				0D7BFC6516AE4A10A7A573C4 /* WarmupCalculator.swift */,
 				503164419B4BB32A2E596A0A /* WeightLoading.swift */,
 				58D59D5F0284FAE1501D8CA3 /* WorkoutScheduler.swift */,
@@ -235,10 +247,13 @@
 				22A593B939534F5A21E30958 /* Info.plist */,
 				9272D7D9AE33ABAF6EB59754 /* InvariantTests.swift */,
 				62F85F91F1F85D69FC4F54C6 /* LocalDayTests.swift */,
+				90F08311C71F4D47B9D18A10 /* SetTapStateMachineTests.swift */,
 				CB8A6FC2E056A981B33D46B1 /* ProgressionTests.swift */,
 				7FB774771FCC1764981F1FDA /* SeedingTests.swift */,
 				E4A25FBD3F292C82F171ECFC /* TestHelpers.swift */,
+				90F08313C71F4D47B9D18A10 /* TodayViewModelSetTapTests.swift */,
 				916972C7CA250F6075D00080 /* TodayViewModelTests.swift */,
+				90F08315C71F4D47B9D18A10 /* UndoCoordinatorTests.swift */,
 				59AE8C38E61C9C2B3F774D79 /* WarmupCalculatorTests.swift */,
 				5668C5D4D64E5B5529BA1178 /* WeightLoadingTests.swift */,
 				C85A8E6388DAAB82A8630DEA /* WorkoutSchedulerTests.swift */,
@@ -365,10 +380,13 @@
 				F585B0C7A8310D5182B85C69 /* DraftReopenCoordinatorTests.swift in Sources */,
 				8887D21F78FAC8F43F68AAB8 /* InvariantTests.swift in Sources */,
 				8CF2A10925D55699DDE0122E /* LocalDayTests.swift in Sources */,
+				90F08312C71F4D47B9D18A10 /* SetTapStateMachineTests.swift in Sources */,
 				28D4213FEF024A9879BC20AD /* ProgressionTests.swift in Sources */,
 				A06830E8D2CA5F289A512AC3 /* SeedingTests.swift in Sources */,
 				850729C01ED08163E4E5E30C /* TestHelpers.swift in Sources */,
+				90F08314C71F4D47B9D18A10 /* TodayViewModelSetTapTests.swift in Sources */,
 				BB7A83DA439167429C620798 /* TodayViewModelTests.swift in Sources */,
+				90F08316C71F4D47B9D18A10 /* UndoCoordinatorTests.swift in Sources */,
 				A42193910B55E41E2DA2D00E /* WarmupCalculatorTests.swift in Sources */,
 				7F2FAD78D09ED34C2BD20802 /* WeightLoadingTests.swift in Sources */,
 				9FDF82A6F25EAE71A0F919D2 /* WorkoutSchedulerTests.swift in Sources */,
@@ -392,12 +410,14 @@
 				E813D61159D38DE87F6D3DBC /* PreviewSupport.swift in Sources */,
 				5F6EDBB37C5BF5CA5C313043 /* ProgramModels.swift in Sources */,
 				47EF476BD570186ED5492D45 /* Progression.swift in Sources */,
+				90F08318C71F4D47B9D18A10 /* SetTapStateMachine.swift in Sources */,
 				84E40F017D3AE6BC42695050 /* DraftReopenCoordinator.swift in Sources */,
 				F9EE758C6E1D704BDD3A18C0 /* RootTabView.swift in Sources */,
 				AEF9A03B7BEC39506D66C3E3 /* TodayExerciseCard.swift in Sources */,
 				E7AB22CA625D63FD59EBA137 /* TodaySetRow.swift in Sources */,
 				06299A9D3BF041A1A407B3DA /* TodayView.swift in Sources */,
 				EF9BF9E4C64D6B544C4D8D75 /* TodayViewModel.swift in Sources */,
+				90F0831AC71F4D47B9D18A10 /* UndoCoordinator.swift in Sources */,
 				F31A874566103581665BDFA6 /* User.swift in Sources */,
 				DBA95CE115704767A9E70B64 /* WarmupCalculator.swift in Sources */,
 				F51C5BDE42CF097014EBA2A9 /* WeightLoading.swift in Sources */,

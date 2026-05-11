@@ -18,17 +18,29 @@ final class TodayViewModel {
     private(set) var isProgramDayLocked = false
     private(set) var programDayLockHint: String?
 
+    @ObservationIgnored
     private var modelContext: ModelContext?
+    @ObservationIgnored
     private var weightLoading: WeightLoading?
+    @ObservationIgnored
+    private var undoCoordinator: UndoCoordinator?
+    @ObservationIgnored
+    private var restTimer: RestTimerStarting
     private var reopenedDraftID: UUID?
     private var activeDraftSessionID: UUID?
     private let now: Date
     private let timeZone: TimeZone
 
-    init(modelContext: ModelContext? = nil, now: Date = .now, timeZone: TimeZone = .current) {
+    init(
+        modelContext: ModelContext? = nil,
+        now: Date = .now,
+        timeZone: TimeZone = .current,
+        restTimer: RestTimerStarting = RestTimerStub()
+    ) {
         self.modelContext = modelContext
         self.now = now
         self.timeZone = timeZone
+        self.restTimer = restTimer
     }
 
     func setModelContext(_ modelContext: ModelContext) {
@@ -37,6 +49,10 @@ final class TodayViewModel {
 
     func setReopenedDraftID(_ reopenedDraftID: UUID?) {
         self.reopenedDraftID = reopenedDraftID
+    }
+
+    func setUndoCoordinator(_ undoCoordinator: UndoCoordinator) {
+        self.undoCoordinator = undoCoordinator
     }
 
     func load() {
@@ -134,6 +150,117 @@ final class TodayViewModel {
         return session
     }
 
+    func tapSet(_ setID: UUID) throws {
+        let displayedPlan = draftPlan
+        guard let session = try prepareDraftIfNeeded() else { return }
+        guard let (loggedSet, exerciseLog) = resolveSet(id: setID, in: session, displayedPlan: displayedPlan) else { return }
+        let currentState = SetTapStateMachine.state(for: loggedSet.actualReps, targetReps: loggedSet.targetReps)
+        let result = SetTapStateMachine.tap(current: currentState, targetReps: loggedSet.targetReps, kind: loggedSet.kind)
+        guard result.transition != .noop else { return }
+
+        let previousReps = loggedSet.actualReps
+        apply(transition: result.transition, to: loggedSet)
+
+        if loggedSet.kind == .working,
+           currentState == .pending,
+           result.newState == .complete {
+            // TODO(Phase 5): Replace this stub with the real rest-timer coordinator.
+            restTimer.startRest(forExerciseLog: exerciseLog)
+        }
+
+        if shouldRecordUndo(from: previousReps, to: loggedSet.actualReps) {
+            undoCoordinator?.recordDecrement(
+                setID: loggedSet.id,
+                description: "\(exerciseLog.exerciseNameSnapshot) set \(loggedSet.index + 1)",
+                fromReps: previousReps,
+                toReps: loggedSet.actualReps
+            )
+        }
+
+        try saveChanges()
+        syncDraftPlan(session: session)
+    }
+
+    func restoreSet(_ setID: UUID, actualReps: Int?) throws {
+        let displayedPlan = draftPlan
+        guard let session = try prepareDraftIfNeeded() else { return }
+        guard let (loggedSet, _) = resolveSet(id: setID, in: session, displayedPlan: displayedPlan) else { return }
+
+        loggedSet.actualReps = actualReps
+        loggedSet.completedAt = actualReps == nil ? nil : (loggedSet.completedAt ?? now)
+
+        try saveChanges()
+        syncDraftPlan(session: session)
+    }
+
+    func editWeight(forExerciseLog exerciseLogID: UUID, newWeightKg: Double) throws {
+        let displayedPlan = draftPlan
+        guard let session = try prepareDraftIfNeeded(),
+              let exerciseLog = resolveExerciseLog(id: exerciseLogID, in: session, displayedPlan: displayedPlan),
+              let weightLoading else {
+            return
+        }
+
+        let snappedWeight = weightLoading.nearestLoadable(newWeightKg)
+        exerciseLog.targetWeightKgSnapshot = snappedWeight
+
+        for set in exerciseLog.sets where set.kind == .working && set.actualReps == nil {
+            set.weightKg = snappedWeight
+        }
+
+        let completedWarmups = exerciseLog.sets
+            .filter { $0.kind == .warmup && $0.actualReps != nil }
+            .sorted { $0.index < $1.index }
+        let pendingWarmups = exerciseLog.sets
+            .filter { $0.kind == .warmup && $0.actualReps == nil }
+            .sorted { $0.index < $1.index }
+
+        let warmupCalculator = WarmupCalculator(weightLoading: weightLoading)
+        let updatedWarmups = Array(
+            warmupCalculator
+                .warmupSets(forWorkingWeightKg: snappedWeight)
+                .dropFirst(min(completedWarmups.count, warmupCalculator.warmupSets(forWorkingWeightKg: snappedWeight).count))
+        )
+
+        reindex(completedWarmups)
+        try replacePendingWarmups(
+            pendingWarmups,
+            with: updatedWarmups,
+            in: exerciseLog
+        )
+
+        try saveChanges()
+        syncDraftPlan(session: session)
+    }
+
+    func editWeight(forSet setID: UUID, newWeightKg: Double) throws {
+        let displayedPlan = draftPlan
+        guard let session = try prepareDraftIfNeeded(),
+              let (loggedSet, _) = resolveSet(id: setID, in: session, displayedPlan: displayedPlan),
+              let weightLoading else {
+            return
+        }
+
+        loggedSet.weightKg = weightLoading.nearestLoadable(newWeightKg)
+        try saveChanges()
+        syncDraftPlan(session: session)
+    }
+
+    func deleteSet(_ setID: UUID) throws {
+        let displayedPlan = draftPlan
+        guard let modelContext, let session = try prepareDraftIfNeeded(),
+              let (loggedSet, exerciseLog) = resolveSet(id: setID, in: session, displayedPlan: displayedPlan) else {
+            return
+        }
+
+        exerciseLog.sets.removeAll { $0.id == setID }
+        modelContext.delete(loggedSet)
+        reindex(exerciseLog.sets.filter { $0.kind == loggedSet.kind }.sorted { $0.index < $1.index })
+
+        try saveChanges()
+        syncDraftPlan(session: session)
+    }
+
     func plateSuggestion(for exerciseLog: DraftExerciseLog) -> String {
         guard let weightLoading else { return "—" }
 
@@ -174,6 +301,19 @@ final class TodayViewModel {
         return WeightLoading(barWeightKg: user.barWeightKg, inventory: user.orderedPlates)
     }
 
+    private func apply(transition: SetTapTransition, to loggedSet: LoggedSet) {
+        switch transition {
+        case let .persist(newReps):
+            loggedSet.actualReps = newReps
+            loggedSet.completedAt = newReps == nil ? nil : (loggedSet.completedAt ?? now)
+        case .persistPending:
+            loggedSet.actualReps = nil
+            loggedSet.completedAt = nil
+        case .noop:
+            break
+        }
+    }
+
     private var currentCalendar: Calendar {
         var calendar = Calendar(identifier: .gregorian)
         calendar.timeZone = timeZone
@@ -194,6 +334,15 @@ final class TodayViewModel {
     private func matchProgramDay(_ programDay: ProgramDay?, in days: [ProgramDay]) -> ProgramDay? {
         guard let programDay else { return nil }
         return days.first(where: { matchesSelection($0, programDay) }) ?? programDay
+    }
+
+    private func syncDraftPlan(session: WorkoutSession) {
+        activeDraftSessionID = session.id
+        reopenedDraftID = session.id
+        selectedProgramDay = matchProgramDay(session.programDay, in: availableProgramDays)
+        draftPlan = DraftSessionPlan(session: session)
+        isProgramDayLocked = true
+        programDayLockHint = makeProgramDayLockHint(for: session)
     }
 
     private func makeProgramDayLockHint(for session: WorkoutSession) -> String {
@@ -218,5 +367,119 @@ final class TodayViewModel {
 
     private static func formatWeight(_ weight: Double) -> String {
         weight.formatted(.number.precision(.fractionLength(weight.rounded(.down) == weight ? 0 : 1)))
+    }
+
+    private func saveChanges() throws {
+        try modelContext?.save()
+    }
+
+    private func findSet(id setID: UUID, in session: WorkoutSession) -> (LoggedSet, ExerciseLog)? {
+        for exerciseLog in session.exerciseLogs {
+            if let loggedSet = exerciseLog.sets.first(where: { $0.id == setID }) {
+                return (loggedSet, exerciseLog)
+            }
+        }
+        return nil
+    }
+
+    private func resolveSet(id setID: UUID, in session: WorkoutSession, displayedPlan: DraftSessionPlan?) -> (LoggedSet, ExerciseLog)? {
+        if let match = findSet(id: setID, in: session) {
+            return match
+        }
+
+        guard let displayedPlan,
+              let displayedLog = displayedPlan.exerciseLogs.first(where: { log in
+                  log.sets.contains(where: { $0.id == setID })
+              }),
+              let displayedSet = displayedLog.sets.first(where: { $0.id == setID }),
+              let exerciseLog = resolveExerciseLog(id: displayedLog.id, in: session, displayedPlan: displayedPlan) else {
+            return nil
+        }
+
+        guard let loggedSet = exerciseLog.sets.first(where: { $0.kind == displayedSet.kind && $0.index == displayedSet.index }) else {
+            return nil
+        }
+        return (loggedSet, exerciseLog)
+    }
+
+    private func resolveExerciseLog(id exerciseLogID: UUID, in session: WorkoutSession, displayedPlan: DraftSessionPlan?) -> ExerciseLog? {
+        if let exact = session.exerciseLogs.first(where: { $0.id == exerciseLogID }) {
+            return exact
+        }
+
+        guard let displayedPlan,
+              let displayedLog = displayedPlan.exerciseLogs.first(where: { $0.id == exerciseLogID }) else {
+            return nil
+        }
+
+        if let exerciseKey = displayedLog.exercise?.key,
+           let match = session.exerciseLogs.first(where: { $0.exercise?.key == exerciseKey }) {
+            return match
+        }
+
+        return session.exerciseLogs.first(where: { $0.exerciseNameSnapshot == displayedLog.exerciseNameSnapshot })
+    }
+
+    private func reindex(_ sets: [LoggedSet]) {
+        for (index, set) in sets.enumerated() {
+            set.index = index
+        }
+    }
+
+    private func replacePendingWarmups(
+        _ existingWarmups: [LoggedSet],
+        with updatedWarmups: [(weightKg: Double, reps: Int)],
+        in exerciseLog: ExerciseLog
+    ) throws {
+        guard let modelContext else { return }
+
+        for (offset, warmup) in updatedWarmups.enumerated() {
+            if offset < existingWarmups.count {
+                let set = existingWarmups[offset]
+                set.weightKg = warmup.weightKg
+                set.targetReps = warmup.reps
+                set.index = offset + exerciseLog.sets.filter { $0.kind == .warmup && $0.actualReps != nil }.count
+            } else {
+                let newSet = LoggedSet(
+                    log: exerciseLog,
+                    kind: .warmup,
+                    index: offset + exerciseLog.sets.filter { $0.kind == .warmup && $0.actualReps != nil }.count,
+                    weightKg: warmup.weightKg,
+                    targetReps: warmup.reps
+                )
+                modelContext.insert(newSet)
+                exerciseLog.sets.append(newSet)
+            }
+        }
+
+        if existingWarmups.count > updatedWarmups.count {
+            for set in existingWarmups.dropFirst(updatedWarmups.count) {
+                exerciseLog.sets.removeAll { $0.id == set.id }
+                modelContext.delete(set)
+            }
+        }
+    }
+
+    private func shouldRecordUndo(from oldReps: Int?, to newReps: Int?) -> Bool {
+        switch (oldReps, newReps) {
+        case let (old?, new?):
+            return new < old
+        case (.some, nil):
+            return true
+        default:
+            return false
+        }
+    }
+}
+
+@MainActor
+protocol RestTimerStarting {
+    func startRest(forExerciseLog exerciseLog: ExerciseLog)
+}
+
+@MainActor
+struct RestTimerStub: RestTimerStarting {
+    func startRest(forExerciseLog exerciseLog: ExerciseLog) {
+        _ = exerciseLog
     }
 }

@@ -2,13 +2,13 @@ import Foundation
 import SwiftData
 
 enum DraftSessionError: Error, Equatable {
-    case draftAlreadyExistsForToday(existing: WorkoutSession)
+    case draftAlreadyExistsForToday(existingID: UUID)
     case missingUserConfiguration
 
     static func == (lhs: DraftSessionError, rhs: DraftSessionError) -> Bool {
         switch (lhs, rhs) {
         case let (.draftAlreadyExistsForToday(left), .draftAlreadyExistsForToday(right)):
-            return left.id == right.id
+            return left == right
         case (.missingUserConfiguration, .missingUserConfiguration):
             return true
         default:
@@ -56,7 +56,7 @@ struct DraftSessionService {
         calendar: Calendar = .current
     ) throws -> WorkoutSession {
         if let existing = currentDraft(now: now, calendar: calendar) {
-            throw DraftSessionError.draftAlreadyExistsForToday(existing: existing)
+            throw DraftSessionError.draftAlreadyExistsForToday(existingID: existing.id)
         }
 
         let warmupCalculator = WarmupCalculator(weightLoading: weightLoading)

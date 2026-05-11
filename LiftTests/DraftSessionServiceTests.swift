@@ -105,7 +105,7 @@ struct DraftSessionServiceTests {
             _ = try service.createDraft(for: workoutB, now: fixtureDate(), calendar: calendar(timeZone: .utc))
             Issue.record("Expected duplicate draft creation to throw")
         } catch let error as DraftSessionError {
-            #expect(error == .draftAlreadyExistsForToday(existing: existing))
+            #expect(error == .draftAlreadyExistsForToday(existingID: existing.id))
         }
     }
 
