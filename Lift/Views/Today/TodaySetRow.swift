@@ -5,9 +5,7 @@ struct TodaySetRow: View {
 
     var body: some View {
         HStack(spacing: 12) {
-            Image(systemName: "circle")
-                .font(.system(size: 30, weight: .regular))
-                .foregroundStyle(.secondary)
+            statusIcon
 
             Text("\(formattedWeight) kg × \(set.targetReps)")
                 .font(.body.weight(.medium))
@@ -26,11 +24,46 @@ struct TodaySetRow: View {
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(.vertical, 4)
         .accessibilityElement(children: .combine)
-        .accessibilityLabel("\(set.targetReps) reps at \(formattedWeight) kilograms, \(set.kind == .warmup ? "warmup set" : "working set")")
+        .accessibilityLabel("\(set.targetReps) reps at \(formattedWeight) kilograms, \(accessibilityState)")
     }
 
     private var formattedWeight: String {
         self.set.weightKg.formatted(.number.precision(.fractionLength(self.set.weightKg.rounded(.down) == self.set.weightKg ? 0 : 1)))
+    }
+
+    @ViewBuilder
+    private var statusIcon: some View {
+        if let actualReps = set.actualReps {
+            if actualReps >= set.targetReps || set.kind == .warmup {
+                Image(systemName: "checkmark.circle.fill")
+                    .font(.system(size: 30, weight: .regular))
+                    .foregroundStyle(.green)
+            } else {
+                ZStack {
+                    Circle()
+                        .fill(Color.orange)
+                        .frame(width: 30, height: 30)
+                    Text("\(actualReps)")
+                        .font(.caption.weight(.bold))
+                        .foregroundStyle(.white)
+                }
+            }
+        } else {
+            Image(systemName: "circle")
+                .font(.system(size: 30, weight: .regular))
+                .foregroundStyle(.secondary)
+        }
+    }
+
+    private var accessibilityState: String {
+        let kindDescription = set.kind == .warmup ? "warmup set" : "working set"
+        guard let actualReps = set.actualReps else {
+            return "\(kindDescription), pending"
+        }
+        if actualReps >= set.targetReps || set.kind == .warmup {
+            return "\(kindDescription), complete"
+        }
+        return "\(kindDescription), \(actualReps) reps completed"
     }
 }
 

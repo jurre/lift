@@ -15,9 +15,13 @@ final class TodayViewModel {
     private(set) var availableProgramDays: [ProgramDay] = []
     private(set) var draftPlan: DraftSessionPlan?
     private(set) var isLoading = false
+    private(set) var isProgramDayLocked = false
+    private(set) var programDayLockHint: String?
 
     private var modelContext: ModelContext?
     private var weightLoading: WeightLoading?
+    private var reopenedDraftID: UUID?
+    private var activeDraftSessionID: UUID?
     private let now: Date
     private let timeZone: TimeZone
 
@@ -31,6 +35,10 @@ final class TodayViewModel {
         self.modelContext = modelContext
     }
 
+    func setReopenedDraftID(_ reopenedDraftID: UUID?) {
+        self.reopenedDraftID = reopenedDraftID
+    }
+
     func load() {
         refresh()
     }
@@ -40,6 +48,8 @@ final class TodayViewModel {
             availableProgramDays = []
             selectedProgramDay = nil
             draftPlan = nil
+            isProgramDayLocked = false
+            programDayLockHint = nil
             return
         }
 
@@ -56,9 +66,23 @@ final class TodayViewModel {
             let days = try modelContext.fetch(dayDescriptor)
             let mostRecentCompleted = try modelContext.fetch(sessionDescriptor).first(where: { $0.status == .completed })
             let user = try modelContext.fetch(userDescriptor).first
+            let draftService = try DraftSessionService(modelContext: modelContext)
 
             availableProgramDays = days
             weightLoading = makeWeightLoading(from: user)
+
+            if let persistedDraft = activeDraftSession(using: draftService) {
+                activeDraftSessionID = persistedDraft.id
+                selectedProgramDay = matchProgramDay(persistedDraft.programDay, in: days)
+                draftPlan = DraftSessionPlan(session: persistedDraft)
+                isProgramDayLocked = true
+                programDayLockHint = makeProgramDayLockHint(for: persistedDraft)
+                return
+            } else {
+                activeDraftSessionID = nil
+                isProgramDayLocked = false
+                programDayLockHint = nil
+            }
 
             if let currentSelection = selectedProgramDay,
                let refreshedSelection = days.first(where: { matchesSelection($0, currentSelection) }) {
@@ -77,14 +101,37 @@ final class TodayViewModel {
             availableProgramDays = []
             selectedProgramDay = nil
             draftPlan = nil
+            isProgramDayLocked = false
+            programDayLockHint = nil
         }
     }
 
     func select(day: ProgramDay) {
+        guard !isProgramDayLocked else { return }
         guard let matchingDay = availableProgramDays.first(where: { matchesSelection($0, day) }) else {
             return
         }
         selectedProgramDay = matchingDay
+    }
+
+    func prepareDraftIfNeeded() throws -> WorkoutSession? {
+        guard let modelContext, let selectedProgramDay else {
+            return nil
+        }
+
+        let draftService = try DraftSessionService(modelContext: modelContext)
+        if let activeDraft = activeDraftSession(using: draftService) {
+            return activeDraft
+        }
+
+        let session = try draftService.createDraft(
+            for: selectedProgramDay,
+            now: now,
+            calendar: currentCalendar
+        )
+        reopenedDraftID = session.id
+        refresh()
+        return session
     }
 
     func plateSuggestion(for exerciseLog: DraftExerciseLog) -> String {
@@ -125,6 +172,37 @@ final class TodayViewModel {
     private func makeWeightLoading(from user: User?) -> WeightLoading? {
         guard let user else { return nil }
         return WeightLoading(barWeightKg: user.barWeightKg, inventory: user.orderedPlates)
+    }
+
+    private var currentCalendar: Calendar {
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = timeZone
+        return calendar
+    }
+
+    private func activeDraftSession(using draftService: DraftSessionService) -> WorkoutSession? {
+        if let reopenedDraftID {
+            if let reopened = draftService.allDrafts().first(where: { $0.id == reopenedDraftID }) {
+                return reopened
+            }
+            self.reopenedDraftID = nil
+        }
+
+        return draftService.currentDraft(now: now, calendar: currentCalendar)
+    }
+
+    private func matchProgramDay(_ programDay: ProgramDay?, in days: [ProgramDay]) -> ProgramDay? {
+        guard let programDay else { return nil }
+        return days.first(where: { matchesSelection($0, programDay) }) ?? programDay
+    }
+
+    private func makeProgramDayLockHint(for session: WorkoutSession) -> String {
+        let dayName = session.programDay?.name ?? selectedProgramDay?.name ?? "Workout"
+        let todayID = LocalDay.id(for: now, in: timeZone)
+        if session.workoutDayID == todayID {
+            return "\(dayName) — locked for today"
+        }
+        return "\(dayName) — locked to unfinished draft"
     }
 
     private func matchesSelection(_ lhs: ProgramDay?, _ rhs: ProgramDay?) -> Bool {

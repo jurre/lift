@@ -3,6 +3,7 @@ import SwiftUI
 struct WorkoutPicker: View {
     let selectedDayName: String
     let availableProgramDays: [ProgramDay]
+    let isLocked: Bool
     let onSelect: (ProgramDay) -> Void
 
     var body: some View {
@@ -16,7 +17,7 @@ struct WorkoutPicker: View {
             HStack(spacing: 8) {
                 Text(selectedDayName)
                     .font(.title2.weight(.semibold))
-                Image(systemName: "chevron.down")
+                Image(systemName: isLocked ? "lock.fill" : "chevron.down")
                     .font(.headline)
                     .foregroundStyle(.secondary)
             }
@@ -24,6 +25,7 @@ struct WorkoutPicker: View {
             .padding(.vertical, 10)
             .background(.thinMaterial, in: Capsule())
         }
+        .disabled(isLocked)
         .accessibilityLabel("Workout picker")
         .accessibilityValue(selectedDayName)
     }
@@ -33,6 +35,7 @@ struct WorkoutPicker: View {
     WorkoutPicker(
         selectedDayName: "Workout B",
         availableProgramDays: PreviewSupport.programDays(),
+        isLocked: false,
         onSelect: { _ in }
     )
     .padding()

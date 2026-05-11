@@ -4,6 +4,7 @@ import SwiftUI
 struct TodayView: View {
     @Environment(\.modelContext) private var modelContext
     @State private var viewModel = TodayViewModel()
+    let draftReopenCoordinator: DraftReopenCoordinator
 
     var body: some View {
         NavigationStack {
@@ -38,8 +39,9 @@ struct TodayView: View {
                 }
             }
             .navigationTitle("Today")
-            .task {
+            .task(id: draftReopenCoordinator.refreshToken) {
                 viewModel.setModelContext(modelContext)
+                viewModel.setReopenedDraftID(draftReopenCoordinator.resumedDraftID)
                 viewModel.load()
             }
         }
@@ -50,8 +52,15 @@ struct TodayView: View {
             WorkoutPicker(
                 selectedDayName: viewModel.selectedProgramDay?.name ?? "Choose workout",
                 availableProgramDays: viewModel.availableProgramDays,
+                isLocked: viewModel.isProgramDayLocked,
                 onSelect: viewModel.select(day:)
             )
+
+            if let programDayLockHint = viewModel.programDayLockHint {
+                Text(programDayLockHint)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
 
             Text(Date.now.formatted(date: .complete, time: .omitted))
                 .font(.subheadline)
@@ -78,6 +87,6 @@ struct TodayView: View {
 }
 
 #Preview {
-    TodayView()
+    TodayView(draftReopenCoordinator: DraftReopenCoordinator())
         .modelContainer(PreviewSupport.container)
 }

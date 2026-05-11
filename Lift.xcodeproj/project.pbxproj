@@ -11,15 +11,18 @@
 		04F10DD5A824FA2698302B65 /* LiftModelContainer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 16180F82202B745F16D5AF1D /* LiftModelContainer.swift */; };
 		06299A9D3BF041A1A407B3DA /* TodayView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D76203446BD19737B6045B12 /* TodayView.swift */; };
 		1699F973C77FC2E16D0B546B /* LiftSeeder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B22C0196A89AA9BEFF3AD41 /* LiftSeeder.swift */; };
+		1909F06F476D2EB332EDAC57 /* DraftSessionService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1909F06E476D2EB332EDAC57 /* DraftSessionService.swift */; };
 		2543ECFA7A45B445EC621BE4 /* LiftUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E31664A376C2F2346FB1E9BF /* LiftUITests.swift */; };
 		28B5A4973A39E310EED3F72B /* DraftSessionFactoryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D6CF4E83A2900BED7CCCAD24 /* DraftSessionFactoryTests.swift */; };
 		28D4213FEF024A9879BC20AD /* ProgressionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CB8A6FC2E056A981B33D46B1 /* ProgressionTests.swift */; };
+		2BFA3D3B09A14E4209B23624 /* DraftSessionServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BFA3D3A09A14E4209B23624 /* DraftSessionServiceTests.swift */; };
 		3BC469FDC98258B7EF447FD0 /* ModelEnums.swift in Sources */ = {isa = PBXBuildFile; fileRef = 67D2226119EB06025BD6EBF1 /* ModelEnums.swift */; };
 		47EF476BD570186ED5492D45 /* Progression.swift in Sources */ = {isa = PBXBuildFile; fileRef = 84254148D324D035CD6144E5 /* Progression.swift */; };
 		5AF552F079281932D52CF87E /* PersistenceService.swift in Sources */ = {isa = PBXBuildFile; fileRef = CD3AFB17718E3D2F3D79F000 /* PersistenceService.swift */; };
 		5F6EDBB37C5BF5CA5C313043 /* ProgramModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54A0A47A5DB667C3CBBE02FE /* ProgramModels.swift */; };
 		6C6CEC4B998A82121F8F834B /* WorkoutScheduler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 58D59D5F0284FAE1501D8CA3 /* WorkoutScheduler.swift */; };
 		7F2FAD78D09ED34C2BD20802 /* WeightLoadingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5668C5D4D64E5B5529BA1178 /* WeightLoadingTests.swift */; };
+		84E40F017D3AE6BC42695050 /* DraftReopenCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 84E40F007D3AE6BC42695050 /* DraftReopenCoordinator.swift */; };
 		850729C01ED08163E4E5E30C /* TestHelpers.swift in Sources */ = {isa = PBXBuildFile; fileRef = E4A25FBD3F292C82F171ECFC /* TestHelpers.swift */; };
 		8887D21F78FAC8F43F68AAB8 /* InvariantTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9272D7D9AE33ABAF6EB59754 /* InvariantTests.swift */; };
 		8CF2A10925D55699DDE0122E /* LocalDayTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 62F85F91F1F85D69FC4F54C6 /* LocalDayTests.swift */; };
@@ -40,6 +43,7 @@
 		F181C13E70DC9697D9322425 /* LiftSchema.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1EB041F58C36E60D35F3A8DA /* LiftSchema.swift */; };
 		F31A874566103581665BDFA6 /* User.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4913119B91CF5611AD6E4046 /* User.swift */; };
 		F51C5BDE42CF097014EBA2A9 /* WeightLoading.swift in Sources */ = {isa = PBXBuildFile; fileRef = 503164419B4BB32A2E596A0A /* WeightLoading.swift */; };
+		F585B0C7A8310D5182B85C69 /* DraftReopenCoordinatorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F585B0C6A8310D5182B85C69 /* DraftReopenCoordinatorTests.swift */; };
 		F9EE758C6E1D704BDD3A18C0 /* RootTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 60FB56548A08EED9E12F2F39 /* RootTabView.swift */; };
 /* End PBXBuildFile section */
 
@@ -64,10 +68,12 @@
 		0D7BFC6516AE4A10A7A573C4 /* WarmupCalculator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WarmupCalculator.swift; sourceTree = "<group>"; };
 		16180F82202B745F16D5AF1D /* LiftModelContainer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiftModelContainer.swift; sourceTree = "<group>"; };
 		1EB041F58C36E60D35F3A8DA /* LiftSchema.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiftSchema.swift; sourceTree = "<group>"; };
+		1909F06E476D2EB332EDAC57 /* DraftSessionService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DraftSessionService.swift; sourceTree = "<group>"; };
 		225ED958B3478D6184903C1F /* TodayExerciseCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TodayExerciseCard.swift; sourceTree = "<group>"; };
 		22981D9EA5B338D2E9E3C194 /* LiftApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiftApp.swift; sourceTree = "<group>"; };
 		22A593B939534F5A21E30958 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		22AD59C08B881C82D9B07B88 /* Lift.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = Lift.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		2BFA3D3A09A14E4209B23624 /* DraftSessionServiceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DraftSessionServiceTests.swift; sourceTree = "<group>"; };
 		4913119B91CF5611AD6E4046 /* User.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = User.swift; sourceTree = "<group>"; };
 		503164419B4BB32A2E596A0A /* WeightLoading.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeightLoading.swift; sourceTree = "<group>"; };
 		54A0A47A5DB667C3CBBE02FE /* ProgramModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProgramModels.swift; sourceTree = "<group>"; };
@@ -84,6 +90,7 @@
 		74B9EDBB76D108979AF7414D /* TodayViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TodayViewModel.swift; sourceTree = "<group>"; };
 		7FB774771FCC1764981F1FDA /* SeedingTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SeedingTests.swift; sourceTree = "<group>"; };
 		800F3F989762EC3FA20378BE /* FirstRunWizard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FirstRunWizard.swift; sourceTree = "<group>"; };
+		84E40F007D3AE6BC42695050 /* DraftReopenCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DraftReopenCoordinator.swift; sourceTree = "<group>"; };
 		84254148D324D035CD6144E5 /* Progression.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Progression.swift; sourceTree = "<group>"; };
 		916972C7CA250F6075D00080 /* TodayViewModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TodayViewModelTests.swift; sourceTree = "<group>"; };
 		9272D7D9AE33ABAF6EB59754 /* InvariantTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InvariantTests.swift; sourceTree = "<group>"; };
@@ -102,6 +109,7 @@
 		D76203446BD19737B6045B12 /* TodayView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TodayView.swift; sourceTree = "<group>"; };
 		E31664A376C2F2346FB1E9BF /* LiftUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiftUITests.swift; sourceTree = "<group>"; };
 		E4A25FBD3F292C82F171ECFC /* TestHelpers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TestHelpers.swift; sourceTree = "<group>"; };
+		F585B0C6A8310D5182B85C69 /* DraftReopenCoordinatorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DraftReopenCoordinatorTests.swift; sourceTree = "<group>"; };
 		F2DD1C4A1CB233299793CEB6 /* LiftTests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = LiftTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -136,6 +144,7 @@
 			isa = PBXGroup;
 			children = (
 				04DB25FBF5794F2278B3BB5D /* Today */,
+				84E40F007D3AE6BC42695050 /* DraftReopenCoordinator.swift */,
 				BDDE3271456C3F548F9FCC8B /* PreviewSupport.swift */,
 				60FB56548A08EED9E12F2F39 /* RootTabView.swift */,
 			);
@@ -148,6 +157,7 @@
 				16180F82202B745F16D5AF1D /* LiftModelContainer.swift */,
 				1EB041F58C36E60D35F3A8DA /* LiftSchema.swift */,
 				5B22C0196A89AA9BEFF3AD41 /* LiftSeeder.swift */,
+				1909F06E476D2EB332EDAC57 /* DraftSessionService.swift */,
 				CD3AFB17718E3D2F3D79F000 /* PersistenceService.swift */,
 			);
 			path = Persistence;
@@ -220,6 +230,8 @@
 			isa = PBXGroup;
 			children = (
 				D6CF4E83A2900BED7CCCAD24 /* DraftSessionFactoryTests.swift */,
+				2BFA3D3A09A14E4209B23624 /* DraftSessionServiceTests.swift */,
+				F585B0C6A8310D5182B85C69 /* DraftReopenCoordinatorTests.swift */,
 				22A593B939534F5A21E30958 /* Info.plist */,
 				9272D7D9AE33ABAF6EB59754 /* InvariantTests.swift */,
 				62F85F91F1F85D69FC4F54C6 /* LocalDayTests.swift */,
@@ -349,6 +361,8 @@
 			buildActionMask = 2147483647;
 			files = (
 				28B5A4973A39E310EED3F72B /* DraftSessionFactoryTests.swift in Sources */,
+				2BFA3D3B09A14E4209B23624 /* DraftSessionServiceTests.swift in Sources */,
+				F585B0C7A8310D5182B85C69 /* DraftReopenCoordinatorTests.swift in Sources */,
 				8887D21F78FAC8F43F68AAB8 /* InvariantTests.swift in Sources */,
 				8CF2A10925D55699DDE0122E /* LocalDayTests.swift in Sources */,
 				28D4213FEF024A9879BC20AD /* ProgressionTests.swift in Sources */,
@@ -373,10 +387,12 @@
 				1699F973C77FC2E16D0B546B /* LiftSeeder.swift in Sources */,
 				A8BB8CEDC7071583D20DC0BA /* LocalDay.swift in Sources */,
 				3BC469FDC98258B7EF447FD0 /* ModelEnums.swift in Sources */,
+				1909F06F476D2EB332EDAC57 /* DraftSessionService.swift in Sources */,
 				5AF552F079281932D52CF87E /* PersistenceService.swift in Sources */,
 				E813D61159D38DE87F6D3DBC /* PreviewSupport.swift in Sources */,
 				5F6EDBB37C5BF5CA5C313043 /* ProgramModels.swift in Sources */,
 				47EF476BD570186ED5492D45 /* Progression.swift in Sources */,
+				84E40F017D3AE6BC42695050 /* DraftReopenCoordinator.swift in Sources */,
 				F9EE758C6E1D704BDD3A18C0 /* RootTabView.swift in Sources */,
 				AEF9A03B7BEC39506D66C3E3 /* TodayExerciseCard.swift in Sources */,
 				E7AB22CA625D63FD59EBA137 /* TodaySetRow.swift in Sources */,

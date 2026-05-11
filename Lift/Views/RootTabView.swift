@@ -1,9 +1,12 @@
 import SwiftUI
 
 struct RootTabView: View {
+    @Environment(\.modelContext) private var modelContext
+    @State private var draftReopenCoordinator = DraftReopenCoordinator()
+
     var body: some View {
         TabView {
-            TodayView()
+            TodayView(draftReopenCoordinator: draftReopenCoordinator)
                 .tabItem {
                     Label("Today", systemImage: "figure.strengthtraining.traditional")
                 }
@@ -25,6 +28,18 @@ struct RootTabView: View {
             .tabItem {
                 Label("Settings", systemImage: "gear")
             }
+        }
+        .task {
+            draftReopenCoordinator.setModelContext(modelContext)
+            draftReopenCoordinator.load()
+        }
+        .sheet(
+            isPresented: Binding(
+                get: { draftReopenCoordinator.pendingDraft != nil },
+                set: { _ in }
+            )
+        ) {
+            DraftReopenSheet(coordinator: draftReopenCoordinator)
         }
     }
 }

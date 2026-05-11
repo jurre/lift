@@ -58,6 +58,57 @@ struct TodayViewModelTests {
         #expect(draftPlan.exerciseLogs.count == selectedDay.orderedSlots.count)
     }
 
+    @Test("load prefers today's persisted draft and locks workout selection")
+    func loadPrefersPersistedDraftAndLocksSelection() throws {
+        let container = try makeInMemoryContainer()
+        let context = ModelContext(container)
+        try LiftSeeder().seedIfNeeded(in: context)
+
+        let workoutB = try requireDay(named: "Workout B", from: context)
+        let service = try DraftSessionService(modelContext: context)
+        let session = try service.createDraft(for: workoutB, now: fixtureDate(), calendar: utcCalendar())
+        session.exerciseLogs[0].sets.first(where: { $0.kind == .working })?.actualReps = 5
+        try context.save()
+
+        let viewModel = TodayViewModel(
+            modelContext: context,
+            now: fixtureDate(),
+            timeZone: .utc
+        )
+
+        viewModel.load()
+
+        #expect(viewModel.selectedProgramDay?.name == "Workout B")
+        #expect(viewModel.isProgramDayLocked)
+        #expect(viewModel.programDayLockHint == "Workout B — locked for today")
+        let draftPlan = try #require(viewModel.draftPlan)
+        #expect(draftPlan.exerciseLogs.map(\.exerciseNameSnapshot) == ["Squat", "OHP", "Deadlift"])
+        let completedSet = draftPlan.exerciseLogs
+            .flatMap(\.sets)
+            .first(where: { $0.kind == .working && $0.actualReps == 5 })
+        #expect(completedSet != nil)
+    }
+
+    @Test("prepareDraftIfNeeded creates a persisted draft for the selected day")
+    func prepareDraftIfNeededCreatesPersistedDraft() throws {
+        let container = try makeInMemoryContainer()
+        let context = ModelContext(container)
+        try LiftSeeder().seedIfNeeded(in: context)
+
+        let viewModel = TodayViewModel(
+            modelContext: context,
+            now: fixtureDate(),
+            timeZone: .utc
+        )
+        viewModel.load()
+
+        let created = try viewModel.prepareDraftIfNeeded()
+        let service = try DraftSessionService(modelContext: context)
+
+        #expect(created?.status == .draft)
+        #expect(service.currentDraft(now: fixtureDate(), calendar: utcCalendar())?.id == created?.id)
+    }
+
     private func requireDay(named name: String, from context: ModelContext) throws -> ProgramDay {
         let days = try fetchAll(ProgramDay.self, from: context)
         guard let day = days.first(where: { $0.name == name }) else {
@@ -69,6 +120,12 @@ struct TodayViewModelTests {
 
     private func fixtureDate() -> Date {
         Date(timeIntervalSince1970: 1_735_689_600)
+    }
+
+    private func utcCalendar() -> Calendar {
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = .utc
+        return calendar
     }
 }
 
