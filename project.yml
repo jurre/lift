@@ -1,0 +1,124 @@
+name: Lift
+options:
+  createIntermediateGroups: true
+  groupSortPosition: top
+  xcodeVersion: '16.4'
+  deploymentTarget:
+    iOS: '18.0'
+fileGroups:
+  - .gitignore
+  - README.md
+settings:
+  base:
+    SWIFT_VERSION: '6.0'
+    SWIFT_STRICT_CONCURRENCY: complete
+    IPHONEOS_DEPLOYMENT_TARGET: '18.0'
+    TARGETED_DEVICE_FAMILY: '1'
+    SUPPORTS_MACCATALYST: 'NO'
+    SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD: 'NO'
+    SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD: 'NO'
+    CODE_SIGN_STYLE: Automatic
+    DEVELOPMENT_TEAM: ''
+    CURRENT_PROJECT_VERSION: '1'
+    MARKETING_VERSION: '1.0'
+targets:
+  Lift:
+    type: application
+    platform: iOS
+    supportedDestinations: [iOS]
+    deploymentTarget: '18.0'
+    sources:
+      - path: Lift
+        type: group
+        createIntermediateGroups: true
+    info:
+      path: Lift/Info.plist
+      properties:
+        UILaunchScreen: {}
+        UIApplicationSceneManifest:
+          UIApplicationSupportsMultipleScenes: false
+        UISupportedInterfaceOrientations:
+          - UIInterfaceOrientationPortrait
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.jurre.lift
+        PRODUCT_NAME: Lift
+        SWIFT_VERSION: '6.0'
+        SWIFT_STRICT_CONCURRENCY: complete
+        IPHONEOS_DEPLOYMENT_TARGET: '18.0'
+        TARGETED_DEVICE_FAMILY: '1'
+        SUPPORTS_MACCATALYST: 'NO'
+        SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD: 'NO'
+        SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD: 'NO'
+        INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone: UIInterfaceOrientationPortrait
+    scheme:
+      testTargets:
+        - LiftTests
+  LiftTests:
+    type: bundle.unit-test
+    platform: iOS
+    supportedDestinations: [iOS]
+    deploymentTarget: '18.0'
+    sources:
+      - path: LiftTests
+        type: group
+        createIntermediateGroups: true
+    info:
+      path: LiftTests/Info.plist
+      properties:
+        CFBundleShortVersionString: '1.0'
+    dependencies:
+      - target: Lift
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.jurre.lift.tests
+        GENERATE_INFOPLIST_FILE: NO
+        SWIFT_VERSION: '6.0'
+        SWIFT_STRICT_CONCURRENCY: complete
+        IPHONEOS_DEPLOYMENT_TARGET: '18.0'
+        TARGETED_DEVICE_FAMILY: '1'
+        SUPPORTS_MACCATALYST: 'NO'
+        SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD: 'NO'
+        SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD: 'NO'
+  LiftUITests:
+    type: bundle.ui-testing
+    platform: iOS
+    supportedDestinations: [iOS]
+    deploymentTarget: '18.0'
+    sources:
+      - path: LiftUITests
+        type: group
+        createIntermediateGroups: true
+    info:
+      path: LiftUITests/Info.plist
+      properties:
+        CFBundleShortVersionString: '1.0'
+    dependencies:
+      - target: Lift
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.jurre.lift.uitests
+        GENERATE_INFOPLIST_FILE: NO
+        SWIFT_VERSION: '6.0'
+        SWIFT_STRICT_CONCURRENCY: complete
+        IPHONEOS_DEPLOYMENT_TARGET: '18.0'
+        TARGETED_DEVICE_FAMILY: '1'
+        SUPPORTS_MACCATALYST: 'NO'
+        SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD: 'NO'
+        SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD: 'NO'
+schemes:
+  Lift:
+    build:
+      targets:
+        Lift: all
+        LiftTests: [test]
+        LiftUITests: [test]
+    run:
+      config: Debug
+    test:
+      config: Debug
+      gatherCoverageData: false
+      targets:
+        - LiftTests
+    archive:
+      config: Release
