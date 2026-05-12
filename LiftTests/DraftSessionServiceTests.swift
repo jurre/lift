@@ -36,15 +36,15 @@ struct DraftSessionServiceTests {
         #expect(logsByName.values.allSatisfy { $0.targetRepsSnapshot == 5 })
 
         let squatSets = try #require(session.exerciseLogs.first(where: { $0.exerciseNameSnapshot == "Squat" })?.sets)
-        #expect(squatSets.filter { $0.kind == .warmup }.count == 4)
+        #expect(squatSets.filter { $0.kind == .warmup }.count == 3)
         #expect(squatSets.filter { $0.kind == .working }.count == 3)
 
         let benchSets = try #require(session.exerciseLogs.first(where: { $0.exerciseNameSnapshot == "Bench" })?.sets)
-        #expect(benchSets.filter { $0.kind == .warmup }.count == 3)
+        #expect(benchSets.filter { $0.kind == .warmup }.count == 2)
         #expect(benchSets.filter { $0.kind == .working }.count == 3)
 
         let rowSets = try #require(session.exerciseLogs.first(where: { $0.exerciseNameSnapshot == "Row" })?.sets)
-        #expect(rowSets.filter { $0.kind == .warmup }.count == 3)
+        #expect(rowSets.filter { $0.kind == .warmup }.count == 2)
         #expect(rowSets.filter { $0.kind == .working }.count == 3)
 
         let allSets = session.exerciseLogs.flatMap(\.sets)

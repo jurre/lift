@@ -332,10 +332,13 @@ final class TodayViewModel {
             .sorted { $0.index < $1.index }
 
         let warmupCalculator = WarmupCalculator(weightLoading: weightLoading)
+        let policy = exerciseLog.exercise?.warmupPolicy ?? .default
+        let recomputedWarmups = warmupCalculator.warmupSets(
+            forWorkingWeightKg: snappedWeight,
+            policy: policy
+        )
         let updatedWarmups = Array(
-            warmupCalculator
-                .warmupSets(forWorkingWeightKg: snappedWeight)
-                .dropFirst(min(completedWarmups.count, warmupCalculator.warmupSets(forWorkingWeightKg: snappedWeight).count))
+            recomputedWarmups.dropFirst(min(completedWarmups.count, recomputedWarmups.count))
         )
 
         reindex(completedWarmups)
@@ -384,19 +387,28 @@ final class TodayViewModel {
         }
 
         let workingWeight = exerciseLog.targetWeightKgSnapshot
+        let policy = exerciseLog.exercise?.warmupPolicy ?? .default
+        let warmupLoading = weightLoading.filtered(minimumPlateKg: policy.minimumWarmupPlateKg)
         let warmups = exerciseLog.sets.filter { $0.kind == .warmup }.sorted { $0.index < $1.index }
 
         let newWeight: Double
         let newReps: Int
         if let last = warmups.last {
-            if let next = weightLoading.nextHigherLoadable(last.weightKg), next < workingWeight {
+            if let next = warmupLoading.nextHigherLoadable(last.weightKg), next < workingWeight {
                 newWeight = next
             } else {
                 newWeight = last.weightKg
             }
             newReps = 3
-        } else {
+        } else if policy.includesBarWarmup {
             newWeight = weightLoading.barWeightKg
+            newReps = 5
+        } else {
+            guard let firstLoaded = warmupLoading.nextHigherLoadable(weightLoading.barWeightKg),
+                  firstLoaded < workingWeight else {
+                return
+            }
+            newWeight = firstLoaded
             newReps = 5
         }
 

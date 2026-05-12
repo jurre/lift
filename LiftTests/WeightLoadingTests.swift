@@ -63,6 +63,27 @@ struct WeightLoadingTests {
         #expect(loading.plates(for: 100) == .closest(belowKg: 60, aboveKg: nil))
     }
 
+    @Test("filtered loading drops plates below the minimum")
+    func filteredLoadingDropsSmallPlates() {
+        let loading = WeightLoading(barWeightKg: 20, inventory: standardInventory())
+        let warmupOnly = loading.filtered(minimumPlateKg: 5)
+
+        #expect(!warmupOnly.isLoadable(22.5))
+        #expect(!warmupOnly.isLoadable(27.5))
+        #expect(warmupOnly.isLoadable(30))
+        #expect(warmupOnly.isLoadable(40))
+        #expect(warmupOnly.barWeightKg == 20)
+    }
+
+    @Test("filtered loading collapses to bar when no plates qualify")
+    func filteredLoadingFallsBackToBar() {
+        let loading = WeightLoading(barWeightKg: 20, inventory: standardInventory())
+        let bareBar = loading.filtered(minimumPlateKg: 50)
+
+        #expect(bareBar.isLoadable(20))
+        #expect(bareBar.nextHigherLoadable(20) == nil)
+    }
+
     private func standardInventory() -> [PlateInventoryItem] {
         [25, 20, 15, 10, 5, 2.5, 1.25].map { PlateInventoryItem(weightKg: $0, countTotal: 2) }
     }

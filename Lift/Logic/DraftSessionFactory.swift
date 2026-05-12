@@ -32,7 +32,7 @@ struct DraftSessionFactory {
             )
 
             let warmups = warmupCalculator
-                .warmupSets(forWorkingWeightKg: progression.currentWeightKg)
+                .warmupSets(forWorkingWeightKg: progression.currentWeightKg, policy: exercise.warmupPolicy)
                 .enumerated()
                 .map { index, set in
                     DraftSet(

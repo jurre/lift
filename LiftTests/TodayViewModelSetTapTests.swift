@@ -207,7 +207,7 @@ struct TodayViewModelSetTapTests {
 
     @Test("addWarmupSet appends the next loadable above the last warmup at 3 reps")
     func addWarmupSetAddsNextLoadable() throws {
-        let fixture = try makeFixture(squatWeight: 60)
+        let fixture = try makeFixture(squatWeight: 100)
         let firstExerciseLog = try #require(fixture.viewModel.draftPlan?.exerciseLogs.first)
         let priorWarmupCount = firstExerciseLog.sets.filter { $0.kind == .warmup }.count
         let priorLastWarmup = try #require(firstExerciseLog.sets.filter { $0.kind == .warmup }.sorted { $0.index < $1.index }.last)
@@ -219,10 +219,11 @@ struct TodayViewModelSetTapTests {
         let warmups = exerciseLog.sets.filter { $0.kind == .warmup }.sorted { $0.index < $1.index }
         #expect(warmups.count == priorWarmupCount + 1)
 
-        let expectedWeight = fixture.weightLoading.nextHigherLoadable(priorLastWeight) ?? priorLastWeight
+        let warmupLoading = fixture.weightLoading.filtered(minimumPlateKg: 5)
+        let expectedWeight = warmupLoading.nextHigherLoadable(priorLastWeight) ?? priorLastWeight
         let appended = try #require(warmups.last)
         #expect(appended.weightKg == expectedWeight)
-        #expect(appended.weightKg < 60)
+        #expect(appended.weightKg < 100)
         #expect(appended.targetReps == 3)
         #expect(appended.index == warmups.count - 1)
     }
@@ -256,6 +257,45 @@ struct TodayViewModelSetTapTests {
         let exerciseLog = try #require(try fetchExerciseLog(id: firstExerciseLog.id, from: fixture.context))
         let newIDs = exerciseLog.sets.map(\.id).filter { !priorIDs.contains($0) }
         #expect(newIDs.count == 1)
+    }
+
+    @Test("addWarmupSet on deadlift skips the empty bar and starts at the first loaded plate")
+    func addWarmupSetDeadliftSkipsBar() throws {
+        let fixture = try makeFixture()
+        try setProgressionWeight(forExerciseKey: "deadlift", to: 100, in: fixture.context)
+        let workoutB = try #require(fixture.viewModel.availableProgramDays.first(where: { $0.name == "Workout B" }))
+        _ = fixture.viewModel.requestSwitch(to: workoutB)
+
+        let deadliftLog = try #require(fixture.viewModel.draftPlan?.exerciseLogs.first(where: { $0.exerciseNameSnapshot == "Deadlift" }))
+        let warmupSetIDs = deadliftLog.sets.filter { $0.kind == .warmup }.map(\.id)
+        for id in warmupSetIDs {
+            try fixture.viewModel.deleteSet(id)
+        }
+
+        try fixture.viewModel.addWarmupSet(toExerciseLogID: deadliftLog.id)
+
+        let persisted = try #require(try fetchExerciseLog(id: deadliftLog.id, from: fixture.context))
+        let warmups = persisted.sets.filter { $0.kind == .warmup }.sorted { $0.index < $1.index }
+        #expect(warmups.count == 1)
+        #expect(warmups.first?.weightKg == 30)
+        #expect(warmups.first?.targetReps == 5)
+    }
+
+    @Test("addWarmupSet bails when deadlift working weight leaves no loaded plate option")
+    func addWarmupSetDeadliftBailsWhenNoLoadedFits() throws {
+        let fixture = try makeFixture()
+        try setProgressionWeight(forExerciseKey: "deadlift", to: 25, in: fixture.context)
+        let workoutB = try #require(fixture.viewModel.availableProgramDays.first(where: { $0.name == "Workout B" }))
+        _ = fixture.viewModel.requestSwitch(to: workoutB)
+
+        let deadliftLog = try #require(fixture.viewModel.draftPlan?.exerciseLogs.first(where: { $0.exerciseNameSnapshot == "Deadlift" }))
+        let priorWarmupCount = deadliftLog.sets.filter { $0.kind == .warmup }.count
+        #expect(priorWarmupCount == 0)
+
+        try fixture.viewModel.addWarmupSet(toExerciseLogID: deadliftLog.id)
+
+        let persisted = try #require(try fetchExerciseLog(id: deadliftLog.id, from: fixture.context))
+        #expect(persisted.sets.filter { $0.kind == .warmup }.isEmpty)
     }
 
     @Test("editReps updates a set's targetReps and persists the change")

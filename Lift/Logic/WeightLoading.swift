@@ -12,16 +12,26 @@ final class WeightLoading: Sendable {
     private let loadableEntries: [LoadableEntry]
     private let loadableWeightsKg: [Double]
 
-    init(barWeightKg: Double, inventory: [PlateInventoryItem]) {
-        self.barWeightKg = barWeightKg
-        self.platesByWeightDescending = inventory
+    convenience init(barWeightKg: Double, inventory: [PlateInventoryItem]) {
+        let pairs = inventory
             .map { PlatePair(weightKg: $0.weightKg, availablePairs: max(0, $0.countTotal / 2)) }
             .filter { $0.availablePairs > 0 && $0.weightKg > 0 }
             .sorted { $0.weightKg > $1.weightKg }
+        self.init(barWeightKg: barWeightKg, plates: pairs)
+    }
+
+    private init(barWeightKg: Double, plates: [PlatePair]) {
+        self.barWeightKg = barWeightKg
+        self.platesByWeightDescending = plates
 
         let entries = WeightLoading.enumerateLoadableEntries(barWeightKg: barWeightKg, plates: platesByWeightDescending)
         self.loadableEntries = entries.sorted { $0.totalKg < $1.totalKg }
         self.loadableWeightsKg = self.loadableEntries.map(\.totalKg)
+    }
+
+    func filtered(minimumPlateKg: Double) -> WeightLoading {
+        let allowed = platesByWeightDescending.filter { $0.weightKg >= minimumPlateKg }
+        return WeightLoading(barWeightKg: barWeightKg, plates: allowed)
     }
 
     func isLoadable(_ kg: Double) -> Bool {

@@ -32,16 +32,13 @@ struct DraftSessionFactoryTests {
 
         let squatSets = try #require(plan.exerciseLogs.first?.sets)
         #expect(squatSets.filter { $0.kind == .warmup }.map { ($0.weightKg, $0.targetReps) }.elementsEqual(
-            [(20.0, 5), (25.0, 3), (32.5, 2)],
+            [(20.0, 5), (30.0, 2)],
             by: ==
         ))
         #expect(squatSets.filter { $0.kind == .working }.count == 3)
 
         let deadliftSets = try #require(plan.exerciseLogs.last?.sets)
-        #expect(deadliftSets.filter { $0.kind == .warmup }.map { ($0.weightKg, $0.targetReps) }.elementsEqual(
-            [(20.0, 5)],
-            by: ==
-        ))
+        #expect(deadliftSets.filter { $0.kind == .warmup }.isEmpty)
         #expect(deadliftSets.filter { $0.kind == .working }.map(\.weightKg) == [25])
     }
 
