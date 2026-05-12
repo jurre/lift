@@ -4,6 +4,8 @@ import UIKit
 struct HapticsClient: Sendable {
     var workingSetCompleted: @MainActor @Sendable () -> Void
     var restCompleted: @MainActor @Sendable () -> Void
+    var workoutFinished: @MainActor @Sendable () -> Void
+    var deloadApplied: @MainActor @Sendable () -> Void
 
     static let live = HapticsClient(
         workingSetCompleted: {
@@ -15,12 +17,24 @@ struct HapticsClient: Sendable {
             let generator = UINotificationFeedbackGenerator()
             generator.prepare()
             generator.notificationOccurred(.success)
+        },
+        workoutFinished: {
+            let generator = UINotificationFeedbackGenerator()
+            generator.prepare()
+            generator.notificationOccurred(.success)
+        },
+        deloadApplied: {
+            let generator = UINotificationFeedbackGenerator()
+            generator.prepare()
+            generator.notificationOccurred(.warning)
         }
     )
 
     static let disabled = HapticsClient(
         workingSetCompleted: {},
-        restCompleted: {}
+        restCompleted: {},
+        workoutFinished: {},
+        deloadApplied: {}
     )
 }
 

@@ -5,6 +5,7 @@ struct ExerciseSettingsView: View {
     @Bindable var viewModel: SettingsViewModel
     let progression: ExerciseProgression
 
+    @Environment(\.haptics) private var haptics
     @State private var showWeightEditor = false
     @State private var showDeloadConfirm = false
     @State private var showResetConfirm = false
@@ -145,6 +146,7 @@ struct ExerciseSettingsView: View {
             Button("Deload", role: .destructive) {
                 do {
                     try viewModel.deload(progression: progression)
+                    haptics.deloadApplied()
                 } catch {
                     actionError = "Could not deload: \(error.localizedDescription)"
                 }

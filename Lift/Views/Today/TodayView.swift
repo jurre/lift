@@ -94,6 +94,7 @@ struct TodayView: View {
                         onFinish: {
                             perform {
                                 _ = try viewModel.finalizeCurrentSession()
+                                haptics.workoutFinished()
                                 draftReopenCoordinator.presentConfirmation("Progression applied")
                             }
                             isShowingFinishSheet = false
@@ -101,6 +102,7 @@ struct TodayView: View {
                         onEndWithoutProgression: {
                             perform {
                                 try viewModel.endCurrentSessionWithoutProgression()
+                                haptics.workoutFinished()
                                 draftReopenCoordinator.presentConfirmation("Workout ended without progression")
                             }
                             isShowingFinishSheet = false
