@@ -56,6 +56,7 @@
 		E1635D2D05517BCDC60DFD5D /* FirstRunWizard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 800F3F989762EC3FA20378BE /* FirstRunWizard.swift */; };
 		E2052C8DEC46FEB64391ED03 /* SessionDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6D91F9E1682CC73DE56F5CC1 /* SessionDetailView.swift */; };
 		E4056C99D64E2BDC540C7B8F /* HistorySetRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3675A49DCFF3078F09D1C02 /* HistorySetRow.swift */; };
+		E7774E30A849D203263133EC /* SettingsViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 92DD57EDC737AAA74855796C /* SettingsViewModel.swift */; };
 		E813D61159D38DE87F6D3DBC /* PreviewSupport.swift in Sources */ = {isa = PBXBuildFile; fileRef = BDDE3271456C3F548F9FCC8B /* PreviewSupport.swift */; };
 		EF8CD76C4B413CB6D63A0EBD /* LiftApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 22981D9EA5B338D2E9E3C194 /* LiftApp.swift */; };
 		EF9BF9E4C64D6B544C4D8D75 /* TodayViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 74B9EDBB76D108979AF7414D /* TodayViewModel.swift */; };
@@ -65,6 +66,7 @@
 		F51C5BDE42CF097014EBA2A9 /* WeightLoading.swift in Sources */ = {isa = PBXBuildFile; fileRef = 503164419B4BB32A2E596A0A /* WeightLoading.swift */; };
 		F5497EA504E185BFF91368D2 /* HistoryViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3AF1134F2958D959CCC3E28 /* HistoryViewModel.swift */; };
 		F9EE758C6E1D704BDD3A18C0 /* RootTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 60FB56548A08EED9E12F2F39 /* RootTabView.swift */; };
+		FA4E0F3E502A3BC46C155DFD /* SettingsViewModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE15DCBF10669C3A2E4257EB /* SettingsViewModelTests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -121,6 +123,7 @@
 		846ACF9D134336D5404B67BE /* DraftReopenCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DraftReopenCoordinator.swift; sourceTree = "<group>"; };
 		916972C7CA250F6075D00080 /* TodayViewModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TodayViewModelTests.swift; sourceTree = "<group>"; };
 		9272D7D9AE33ABAF6EB59754 /* InvariantTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InvariantTests.swift; sourceTree = "<group>"; };
+		92DD57EDC737AAA74855796C /* SettingsViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsViewModel.swift; sourceTree = "<group>"; };
 		9C0698BB112A6E99AFE3F8BC /* LocalDay.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalDay.swift; sourceTree = "<group>"; };
 		AB938BB0EC65C80A46577CB7 /* HistoryWorkingSetEditorSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HistoryWorkingSetEditorSheet.swift; sourceTree = "<group>"; };
 		AF3CC46FE32EBE7B215E38EA /* RestTimerServiceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RestTimerServiceTests.swift; sourceTree = "<group>"; };
@@ -132,6 +135,7 @@
 		BC38F9ABE3F984EDCCC5927B /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		BDDE3271456C3F548F9FCC8B /* PreviewSupport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreviewSupport.swift; sourceTree = "<group>"; };
 		BDEEE82375C25C28FFC4DA98 /* UndoCoordinatorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UndoCoordinatorTests.swift; sourceTree = "<group>"; };
+		BE15DCBF10669C3A2E4257EB /* SettingsViewModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsViewModelTests.swift; sourceTree = "<group>"; };
 		BEA3AC2295CDE728CF0459A7 /* TodaySetTile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TodaySetTile.swift; sourceTree = "<group>"; };
 		BFB1DACD54CB5D58B00D13FB /* WorkoutModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkoutModels.swift; sourceTree = "<group>"; };
 		C173F8AA389CE9CB644AEC4D /* DraftSessionServiceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DraftSessionServiceTests.swift; sourceTree = "<group>"; };
@@ -182,10 +186,19 @@
 			path = Lift;
 			sourceTree = "<group>";
 		};
+		297396C6518141C74155874B /* Settings */ = {
+			isa = PBXGroup;
+			children = (
+				92DD57EDC737AAA74855796C /* SettingsViewModel.swift */,
+			);
+			path = Settings;
+			sourceTree = "<group>";
+		};
 		30182AC3E3F24E9B1A50A66E /* Views */ = {
 			isa = PBXGroup;
 			children = (
 				9A23884854416D092D1A28BC /* History */,
+				297396C6518141C74155874B /* Settings */,
 				04DB25FBF5794F2278B3BB5D /* Today */,
 				1B4E0C99CB8E9D2898981A06 /* AppEnvironment.swift */,
 				846ACF9D134336D5404B67BE /* DraftReopenCoordinator.swift */,
@@ -303,6 +316,7 @@
 				AF3CC46FE32EBE7B215E38EA /* RestTimerServiceTests.swift */,
 				7FB774771FCC1764981F1FDA /* SeedingTests.swift */,
 				59C10CCB92E389E50428B6E1 /* SetTapStateMachineTests.swift */,
+				BE15DCBF10669C3A2E4257EB /* SettingsViewModelTests.swift */,
 				E4A25FBD3F292C82F171ECFC /* TestHelpers.swift */,
 				FD22B7E7137D56729AE0F36B /* TodayViewModelSetTapTests.swift */,
 				916972C7CA250F6075D00080 /* TodayViewModelTests.swift */,
@@ -440,6 +454,7 @@
 				2E9EBF9E374E90D62D5FC2B7 /* RestTimerServiceTests.swift in Sources */,
 				A06830E8D2CA5F289A512AC3 /* SeedingTests.swift in Sources */,
 				6E03C2D8AB651D2E0E42081E /* SetTapStateMachineTests.swift in Sources */,
+				FA4E0F3E502A3BC46C155DFD /* SettingsViewModelTests.swift in Sources */,
 				850729C01ED08163E4E5E30C /* TestHelpers.swift in Sources */,
 				1BA8734D114AE46FD9F8BD7A /* TodayViewModelSetTapTests.swift in Sources */,
 				BB7A83DA439167429C620798 /* TodayViewModelTests.swift in Sources */,
@@ -481,6 +496,7 @@
 				F9EE758C6E1D704BDD3A18C0 /* RootTabView.swift in Sources */,
 				E2052C8DEC46FEB64391ED03 /* SessionDetailView.swift in Sources */,
 				D72E7666D9216B0190744C69 /* SetTapStateMachine.swift in Sources */,
+				E7774E30A849D203263133EC /* SettingsViewModel.swift in Sources */,
 				AEF9A03B7BEC39506D66C3E3 /* TodayExerciseCard.swift in Sources */,
 				9FDC11AD8309C879B51DE30F /* TodaySetTile.swift in Sources */,
 				06299A9D3BF041A1A407B3DA /* TodayView.swift in Sources */,
