@@ -2,7 +2,6 @@ import SwiftUI
 
 struct RestTimerOverlay: View {
     @Bindable var restTimer: RestTimerService
-    let exerciseLogs: [DraftExerciseLog]
 
     @Environment(\.haptics) private var haptics
     @Environment(\.scenePhase) private var scenePhase
@@ -14,13 +13,9 @@ struct RestTimerOverlay: View {
                 TimelineView(.periodic(from: .now, by: 1)) { context in
                     contentForActive(activeRest, now: context.date)
                 }
-                .padding(.horizontal, 20)
-                .padding(.bottom, 8)
                 .transition(.move(edge: .bottom).combined(with: .opacity))
             } else if completedSetID != nil {
                 restedContent
-                    .padding(.horizontal, 20)
-                    .padding(.bottom, 8)
                     .transition(.opacity)
             }
         }
@@ -64,16 +59,16 @@ struct RestTimerOverlay: View {
             VStack(alignment: .leading, spacing: 10) {
                 HStack(alignment: .center, spacing: 12) {
                     VStack(alignment: .leading, spacing: 2) {
-                        Text(exerciseName(for: activeRest.setID).uppercased())
+                        Text(activeRest.exerciseName.uppercased())
                             .font(.caption2.weight(.semibold))
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(LiftTheme.textSecondary)
                             .accessibilityHidden(true)
 
                         Text(formatted(remaining))
                             .font(.title2.weight(.bold))
                             .monospacedDigit()
-                            .foregroundStyle(.primary)
-                            .accessibilityLabel("Rest timer for \(exerciseName(for: activeRest.setID))")
+                            .foregroundStyle(LiftTheme.textPrimary)
+                            .accessibilityLabel("Rest timer for \(activeRest.exerciseName)")
                             .accessibilityValue("\(remaining) seconds remaining")
                     }
 
@@ -95,48 +90,25 @@ struct RestTimerOverlay: View {
                 }
 
                 ProgressView(value: progress)
-                    .tint(.accentColor)
+                    .tint(LiftTheme.accent)
                     .accessibilityHidden(true)
             }
             .padding(.horizontal, 16)
-            .padding(.vertical, 12)
-            .frame(maxWidth: .infinity)
-            .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 18, style: .continuous))
-            .overlay(
-                RoundedRectangle(cornerRadius: 18, style: .continuous)
-                    .strokeBorder(Color.primary.opacity(0.06), lineWidth: 1)
-            )
-            .shadow(color: Color.black.opacity(0.08), radius: 8, x: 0, y: 4)
+            .padding(.vertical, 10)
         }
     }
 
     private var restedContent: some View {
         HStack(spacing: 8) {
             Image(systemName: "checkmark.circle.fill")
-                .foregroundStyle(.green)
+                .foregroundStyle(LiftTheme.success)
             Text("Rested!")
                 .font(.headline.weight(.semibold))
-                .foregroundStyle(.green)
+                .foregroundStyle(LiftTheme.success)
             Spacer()
         }
         .padding(.horizontal, 16)
-        .padding(.vertical, 12)
-        .frame(maxWidth: .infinity)
-        .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 18, style: .continuous))
-        .overlay(
-            RoundedRectangle(cornerRadius: 18, style: .continuous)
-                .strokeBorder(Color.green.opacity(0.3), lineWidth: 1)
-        )
-        .shadow(color: Color.black.opacity(0.08), radius: 8, x: 0, y: 4)
-    }
-
-    private func exerciseName(for setID: UUID) -> String {
-        for log in exerciseLogs {
-            if log.sets.contains(where: { $0.id == setID }) {
-                return log.exerciseNameSnapshot
-            }
-        }
-        return "Rest"
+        .padding(.vertical, 10)
     }
 
     private var completionTaskID: String? {

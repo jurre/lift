@@ -310,16 +310,18 @@ private struct TodayFixture {
 private final class RecordingRestTimer: RestTimerStarting {
     struct StartRequest: Equatable, Sendable {
         let exerciseLogID: UUID
+        let exerciseName: String
         let setID: UUID
         let durationSeconds: Int
     }
 
     private(set) var startedRests: [StartRequest] = []
 
-    func start(exerciseLogID: UUID, setID: UUID, durationSeconds: Int, now: Date) async {
+    func start(exerciseLogID: UUID, exerciseName: String, setID: UUID, durationSeconds: Int, now _: Date) async {
         startedRests.append(
             StartRequest(
                 exerciseLogID: exerciseLogID,
+                exerciseName: exerciseName,
                 setID: setID,
                 durationSeconds: durationSeconds
             )

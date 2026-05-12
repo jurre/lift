@@ -259,6 +259,7 @@ final class TodayViewModel {
            result.newState == .complete {
             await restTimer.start(
                 exerciseLogID: exerciseLog.id,
+                exerciseName: exerciseLog.exerciseNameSnapshot,
                 setID: loggedSet.id,
                 durationSeconds: restDuration(for: exerciseLog),
                 now: loggedSet.completedAt ?? now
@@ -673,10 +674,10 @@ final class TodayViewModel {
 
 @MainActor
 protocol RestTimerStarting {
-    func start(exerciseLogID: UUID, setID: UUID, durationSeconds: Int, now: Date) async
+    func start(exerciseLogID: UUID, exerciseName: String, setID: UUID, durationSeconds: Int, now: Date) async
 }
 
 @MainActor
 struct RestTimerStub: RestTimerStarting {
-    func start(exerciseLogID: UUID, setID: UUID, durationSeconds: Int, now: Date) async {}
+    func start(exerciseLogID _: UUID, exerciseName _: String, setID _: UUID, durationSeconds _: Int, now _: Date) async {}
 }

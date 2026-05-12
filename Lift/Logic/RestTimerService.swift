@@ -34,6 +34,7 @@ struct UserNotificationRestScheduler: RestNotificationScheduler {
 final class RestTimerService: RestTimerStarting {
     struct ActiveRest: Equatable, Sendable {
         let exerciseLogID: UUID
+        let exerciseName: String
         let setID: UUID
         let startedAt: Date
         let durationSeconds: Int
@@ -78,6 +79,7 @@ final class RestTimerService: RestTimerStarting {
 
     func start(
         exerciseLogID: UUID,
+        exerciseName: String,
         setID: UUID,
         durationSeconds: Int,
         now: Date = .now
@@ -87,6 +89,7 @@ final class RestTimerService: RestTimerStarting {
         let notificationID = Self.notificationID(for: setID)
         active = ActiveRest(
             exerciseLogID: exerciseLogID,
+            exerciseName: exerciseName,
             setID: setID,
             startedAt: now,
             durationSeconds: durationSeconds,
@@ -97,7 +100,7 @@ final class RestTimerService: RestTimerStarting {
         await scheduler.schedule(
             id: notificationID,
             fireAt: fireAt,
-            body: notificationBody(for: exerciseLogID)
+            body: notificationBody(for: exerciseLogID, fallbackName: exerciseName)
         )
     }
 
@@ -110,6 +113,7 @@ final class RestTimerService: RestTimerStarting {
 
         let updated = ActiveRest(
             exerciseLogID: active.exerciseLogID,
+            exerciseName: active.exerciseName,
             setID: active.setID,
             startedAt: active.startedAt,
             durationSeconds: max(0, active.durationSeconds + bySeconds),
@@ -122,7 +126,7 @@ final class RestTimerService: RestTimerStarting {
         await scheduler.schedule(
             id: notificationID,
             fireAt: updated.startedAt.addingTimeInterval(TimeInterval(updated.durationSeconds)),
-            body: notificationBody(for: updated.exerciseLogID)
+            body: notificationBody(for: updated.exerciseLogID, fallbackName: updated.exerciseName)
         )
     }
 
@@ -145,14 +149,14 @@ final class RestTimerService: RestTimerStarting {
         await scheduler.cancel(id: notificationID)
     }
 
-    private func notificationBody(for exerciseLogID: UUID) -> String {
+    private func notificationBody(for exerciseLogID: UUID, fallbackName: String) -> String {
         if let notificationBodyProvider, let customBody = notificationBodyProvider(exerciseLogID) {
             return customBody
         }
         if let defaultBody = defaultNotificationBody(for: exerciseLogID) {
             return defaultBody
         }
-        return "Rest finished"
+        return "Rest finished — \(fallbackName)"
     }
 
     private func defaultNotificationBody(for exerciseLogID: UUID) -> String? {

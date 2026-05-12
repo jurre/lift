@@ -26,6 +26,7 @@ struct RestTimerServiceTests {
 
         await service.start(
             exerciseLogID: UUID(uuidString: "AAAAAAAA-AAAA-AAAA-AAAA-AAAAAAAAAAAA")!,
+            exerciseName: "Squat",
             setID: UUID(uuidString: "BBBBBBBB-BBBB-BBBB-BBBB-BBBBBBBBBBBB")!,
             durationSeconds: 90,
             now: t0
@@ -46,6 +47,7 @@ struct RestTimerServiceTests {
 
         await service.start(
             exerciseLogID: UUID(uuidString: "AAAAAAAA-AAAA-AAAA-AAAA-AAAAAAAAAAAA")!,
+            exerciseName: "Squat",
             setID: UUID(uuidString: "BBBBBBBB-BBBB-BBBB-BBBB-BBBBBBBBBBBB")!,
             durationSeconds: 45,
             now: t0
@@ -71,6 +73,7 @@ struct RestTimerServiceTests {
 
         await service.start(
             exerciseLogID: UUID(uuidString: "AAAAAAAA-AAAA-AAAA-AAAA-AAAAAAAAAAAA")!,
+            exerciseName: "Squat",
             setID: firstSetID,
             durationSeconds: 90,
             now: t0
@@ -78,6 +81,7 @@ struct RestTimerServiceTests {
 
         await service.start(
             exerciseLogID: UUID(uuidString: "DDDDDDDD-DDDD-DDDD-DDDD-DDDDDDDDDDDD")!,
+            exerciseName: "Squat",
             setID: secondSetID,
             durationSeconds: 120,
             now: t0.addingTimeInterval(5)
@@ -98,6 +102,7 @@ struct RestTimerServiceTests {
 
         await service.start(
             exerciseLogID: UUID(uuidString: "AAAAAAAA-AAAA-AAAA-AAAA-AAAAAAAAAAAA")!,
+            exerciseName: "Squat",
             setID: setID,
             durationSeconds: 90,
             now: Date(timeIntervalSince1970: 1_735_689_600)
@@ -121,6 +126,7 @@ struct RestTimerServiceTests {
 
         await service.start(
             exerciseLogID: UUID(uuidString: "AAAAAAAA-AAAA-AAAA-AAAA-AAAAAAAAAAAA")!,
+            exerciseName: "Squat",
             setID: setID,
             durationSeconds: 90,
             now: t0
@@ -147,6 +153,7 @@ struct RestTimerServiceTests {
 
         await service.start(
             exerciseLogID: UUID(uuidString: "AAAAAAAA-AAAA-AAAA-AAAA-AAAAAAAAAAAA")!,
+            exerciseName: "Squat",
             setID: setID,
             durationSeconds: 90,
             now: t0
@@ -172,6 +179,7 @@ struct RestTimerServiceTests {
 
         await service.start(
             exerciseLogID: UUID(uuidString: "AAAAAAAA-AAAA-AAAA-AAAA-AAAAAAAAAAAA")!,
+            exerciseName: "Squat",
             setID: setID,
             durationSeconds: 90,
             now: t0
