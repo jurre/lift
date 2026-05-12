@@ -129,6 +129,7 @@ private struct ExerciseSettingsRow: View {
                     .padding(.horizontal, 6)
                     .padding(.vertical, 2)
                     .background(Color.orange.opacity(0.15), in: Capsule())
+                    .accessibilityLabel("Stalled \(progression.stalledCount) sessions")
             }
         }
     }
