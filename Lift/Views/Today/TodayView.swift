@@ -138,10 +138,13 @@ struct TodayView: View {
 
                 if let startedAt = viewModel.activeDraftStartedAt {
                     TimelineView(.periodic(from: .now, by: 1)) { context in
-                        Text(formattedElapsed(since: startedAt, now: context.date))
+                        let elapsed = formattedElapsed(since: startedAt, now: context.date)
+                        Text(elapsed)
                             .font(.subheadline)
                             .monospacedDigit()
                             .foregroundStyle(.secondary)
+                            .accessibilityLabel("Workout elapsed time")
+                            .accessibilityValue(elapsed)
                     }
                 }
             }

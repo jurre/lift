@@ -260,9 +260,12 @@ private struct RestTimerInlineView: View {
                     .font(.title2.weight(.bold))
                     .monospacedDigit()
                     .foregroundStyle(.primary)
+                    .accessibilityLabel("Rest timer")
+                    .accessibilityValue("\(remaining) seconds remaining")
 
                 ProgressView(value: progress)
                     .tint(.accentColor)
+                    .accessibilityHidden(true)
 
                 HStack(spacing: 12) {
                     Button("Skip") {
@@ -271,6 +274,7 @@ private struct RestTimerInlineView: View {
                         }
                     }
                     .buttonStyle(.bordered)
+                    .accessibilityLabel("Skip rest")
 
                     Button("+30s") {
                         Task {
@@ -278,6 +282,7 @@ private struct RestTimerInlineView: View {
                         }
                     }
                     .buttonStyle(.borderedProminent)
+                    .accessibilityLabel("Extend rest by 30 seconds")
                 }
                 .font(.caption.weight(.semibold))
             }
