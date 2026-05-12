@@ -3,6 +3,7 @@ import UIKit
 
 struct TodaySetTile: View {
     let set: DraftSet
+    let isNextUp: Bool
     let onTap: () -> Void
     let onEditWeight: ((Double) -> Void)?
     let onEditReps: ((Int) -> Void)?
@@ -11,10 +12,10 @@ struct TodaySetTile: View {
 
     @State private var isShowingWeightEditor = false
     @State private var isShowingWarmupEditor = false
-    @State private var isShowingAdjustHint = false
 
     init(
         set: DraftSet,
+        isNextUp: Bool = false,
         onTap: @escaping () -> Void,
         onEditWeight: ((Double) -> Void)? = nil,
         onEditReps: ((Int) -> Void)? = nil,
@@ -22,6 +23,7 @@ struct TodaySetTile: View {
         weightLoading: WeightLoading? = nil
     ) {
         self.set = set
+        self.isNextUp = isNextUp
         self.onTap = onTap
         self.onEditWeight = onEditWeight
         self.onEditReps = onEditReps
@@ -31,34 +33,26 @@ struct TodaySetTile: View {
 
     var body: some View {
         Button(action: handleTap) {
-            VStack(spacing: 6) {
-                statusIcon
-                    .frame(height: 28)
-
+            HStack(spacing: 8) {
                 Text(label)
-                    .font(.body.weight(.semibold))
+                    .font(.callout.weight(.semibold))
                     .monospacedDigit()
                     .lineLimit(1)
-                    .minimumScaleFactor(0.6)
+                    .minimumScaleFactor(0.7)
                     .foregroundStyle(labelColor)
+                    .frame(maxWidth: .infinity, alignment: .leading)
 
-                if set.kind == .working, isShowingAdjustHint {
-                    Text("tap to adjust")
-                        .font(.caption2)
-                        .foregroundStyle(.secondary)
-                        .lineLimit(1)
-                        .transition(.opacity)
-                }
+                statusIcon
             }
-            .frame(maxWidth: .infinity)
-            .padding(.vertical, 12)
-            .padding(.horizontal, 6)
-            .background(stateBackground, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+            .padding(.horizontal, 12)
+            .padding(.vertical, 10)
+            .frame(maxWidth: .infinity, minHeight: 44)
+            .background(stateBackground, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
             .overlay(
-                RoundedRectangle(cornerRadius: 14, style: .continuous)
+                RoundedRectangle(cornerRadius: 12, style: .continuous)
                     .strokeBorder(stateBorder, lineWidth: stateBorderWidth)
             )
-            .contentShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+            .contentShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
         }
         .buttonStyle(.plain)
         .contextMenu {
@@ -99,17 +93,6 @@ struct TodaySetTile: View {
                 }
             )
         }
-        .task(id: hintTaskID) {
-            guard shouldShowAdjustHint else {
-                withAnimation { isShowingAdjustHint = false }
-                return
-            }
-
-            withAnimation { isShowingAdjustHint = true }
-            try? await Task.sleep(for: .seconds(5))
-            guard hintTaskID == self.hintTaskID else { return }
-            withAnimation { isShowingAdjustHint = false }
-        }
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(accessibilityLabel)
         .accessibilityValue(accessibilityValue)
@@ -117,7 +100,10 @@ struct TodaySetTile: View {
     }
 
     private var label: String {
-        "\(formattedWeight)×\(self.set.targetReps)"
+        if case let .partial(reps) = cellState, reps != set.targetReps {
+            return "\(formattedWeight) × \(reps)"
+        }
+        return "\(formattedWeight) × \(set.targetReps)"
     }
 
     private var formattedWeight: String {
@@ -133,22 +119,20 @@ struct TodaySetTile: View {
         switch cellState {
         case .complete:
             Image(systemName: "checkmark.circle.fill")
-                .font(.system(size: 26, weight: .regular))
-                .foregroundStyle(.green)
-        case let .partial(reps):
-            ZStack {
-                Circle()
-                    .fill(Color.orange)
-                    .frame(width: 28, height: 28)
-                Text("\(reps)")
-                    .font(.callout.weight(.bold))
-                    .foregroundStyle(.white)
-                    .monospacedDigit()
-            }
+                .font(.system(size: 22, weight: .regular))
+                .foregroundStyle(.white, LiftTheme.accent)
+        case let .partial(reps) where reps == 0:
+            Image(systemName: "xmark.circle.fill")
+                .font(.system(size: 22, weight: .regular))
+                .foregroundStyle(.white, LiftTheme.danger)
+        case .partial:
+            Image(systemName: "exclamationmark.circle.fill")
+                .font(.system(size: 22, weight: .regular))
+                .foregroundStyle(.white, LiftTheme.warning)
         case .pending:
             Image(systemName: "circle")
-                .font(.system(size: 24, weight: .regular))
-                .foregroundStyle(.tertiary)
+                .font(.system(size: 22, weight: .regular))
+                .foregroundStyle(LiftTheme.textTertiary)
         }
     }
 
@@ -158,55 +142,48 @@ struct TodaySetTile: View {
 
     private var stateBackground: Color {
         switch cellState {
-        case .complete: return Color.green.opacity(0.16)
-        case .partial: return Color.orange.opacity(0.16)
-        case .pending: return Color.clear
+        case .complete: return LiftTheme.accentMuted
+        case let .partial(reps) where reps == 0: return LiftTheme.danger.opacity(0.16)
+        case .partial: return LiftTheme.warning.opacity(0.16)
+        case .pending: return LiftTheme.raisedFill
         }
     }
 
     private var stateBorder: Color {
         switch cellState {
-        case .complete: return Color.green.opacity(0.55)
-        case .partial: return Color.orange.opacity(0.55)
-        case .pending: return Color.primary.opacity(0.12)
+        case .complete: return LiftTheme.accentBorder
+        case let .partial(reps) where reps == 0: return LiftTheme.danger.opacity(0.55)
+        case .partial: return LiftTheme.warning.opacity(0.55)
+        case .pending: return isNextUp ? LiftTheme.accentBorder : Color.white.opacity(0.10)
         }
     }
 
     private var stateBorderWidth: CGFloat {
         switch cellState {
-        case .complete, .partial: return 1.5
-        case .pending: return 1
+        case .complete, .partial: return 1
+        case .pending: return isNextUp ? 1.5 : 1
         }
     }
 
     private var labelColor: Color {
         switch cellState {
-        case .complete, .partial: return .primary
-        case .pending: return .secondary
+        case .complete: return LiftTheme.textPrimary
+        case .partial: return LiftTheme.textPrimary
+        case .pending: return isNextUp ? LiftTheme.textPrimary : LiftTheme.textSecondary
         }
-    }
-
-    private var shouldShowAdjustHint: Bool {
-        guard self.set.kind == .working else { return false }
-        if case let .partial(reps) = cellState {
-            return reps < self.set.targetReps
-        }
-        return false
-    }
-
-    private var hintTaskID: String {
-        "\(self.set.id.uuidString)-\(self.set.actualReps?.description ?? "pending")"
     }
 
     private var accessibilityLabel: String {
         let kindDescription = self.set.kind == .warmup ? "Warmup set" : "Working set"
-        return "\(kindDescription), \(formattedWeight) kilograms, target \(self.set.targetReps) reps"
+        let nextUpSuffix = isNextUp ? ", next up" : ""
+        return "\(kindDescription)\(nextUpSuffix), \(formattedWeight) kilograms, target \(self.set.targetReps) reps"
     }
 
     private var accessibilityValue: String {
         switch cellState {
         case .pending: return "Pending"
         case .complete: return "\(self.set.targetReps) reps complete"
+        case let .partial(reps) where reps == 0: return "Zero reps recorded"
         case let .partial(reps): return "\(reps) reps partial"
         }
     }
@@ -221,6 +198,7 @@ struct TodaySetTile: View {
         switch state {
         case .pending: return "Set cleared"
         case .complete: return "\(self.set.targetReps) reps complete"
+        case let .partial(reps) where reps == 0: return "Zero reps recorded"
         case let .partial(reps): return "\(reps) reps partial"
         }
     }
@@ -426,10 +404,12 @@ struct WarmupSetEditorSheet: View {
         )
         TodaySetTile(
             set: DraftSet(id: UUID(), kind: .working, index: 2, weightKg: 60, targetReps: 5),
+            isNextUp: true,
             onTap: {},
             onEditWeight: { _ in },
             onDelete: {}
         )
     }
     .padding()
+    .background(LiftTheme.canvas)
 }

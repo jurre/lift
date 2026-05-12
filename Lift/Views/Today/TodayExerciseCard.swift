@@ -19,110 +19,22 @@ struct TodayExerciseCard: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 18) {
-            HStack(alignment: .top, spacing: 16) {
-                VStack(alignment: .leading, spacing: 8) {
-                    Text(exerciseLog.exerciseNameSnapshot)
-                        .font(.title3.weight(.semibold))
-                    Text("\(exerciseLog.targetSetsSnapshot) × \(exerciseLog.targetRepsSnapshot)")
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
-                }
+            headerRow
 
-                Spacer()
+            Divider().background(LiftTheme.cardBorder)
 
-                VStack(alignment: .trailing, spacing: 8) {
-                    HStack(spacing: 8) {
-                        Text("\(formattedWeight) kg")
-                            .font(.title2.weight(.bold))
+            warmupSection
 
-                        Button {
-                            isShowingWorkingWeightEditor = true
-                        } label: {
-                            Image(systemName: "pencil")
-                                .font(.body.weight(.semibold))
-                                .padding(8)
-                                .background(Color.secondary.opacity(0.12), in: Circle())
-                        }
-                        .buttonStyle(.plain)
-                        .accessibilityLabel("Edit working weight for today")
-                    }
+            Divider().background(LiftTheme.cardBorder)
 
-                    Button {
-                        if weightLoading != nil {
-                            isShowingPlateCalculator = true
-                        }
-                    } label: {
-                        Text(plateSuggestion)
-                            .font(.caption.weight(.semibold))
-                            .padding(.horizontal, 10)
-                            .padding(.vertical, 6)
-                            .background(Color.secondary.opacity(0.12), in: Capsule())
-                            .foregroundStyle(.secondary)
-                    }
-                    .buttonStyle(.plain)
-                    .disabled(weightLoading == nil)
-                    .accessibilityLabel("Plate calculator: \(plateSuggestion)")
-                }
-            }
-
-            DisclosureGroup(isExpanded: warmupExpansionBinding) {
-                VStack(alignment: .leading, spacing: 12) {
-                    if warmupSets.isEmpty {
-                        Text("No warmup sets")
-                            .font(.subheadline)
-                            .foregroundStyle(.secondary)
-                            .padding(.top, 8)
-                    } else {
-                        ScrollView(.horizontal, showsIndicators: false) {
-                            HStack(alignment: .top, spacing: 8) {
-                                ForEach(warmupSets, id: \.id) { set in
-                                    TodaySetTile(
-                                        set: set,
-                                        onTap: { onTapSet(set.id) },
-                                        onEditWeight: { onEditSetWeight(set.id, $0) },
-                                        onEditReps: { onEditSetReps(set.id, $0) },
-                                        onDelete: { onDeleteSet(set.id) },
-                                        weightLoading: weightLoading
-                                    )
-                                    .frame(width: 86)
-                                }
-                            }
-                            .padding(.top, 8)
-                            .padding(.horizontal, 1)
-                        }
-                    }
-
-                    Button {
-                        onAddWarmup()
-                    } label: {
-                        Label("Add warmup", systemImage: "plus.circle")
-                            .font(.subheadline.weight(.semibold))
-                    }
-                    .buttonStyle(.bordered)
-                    .controlSize(.small)
-                }
-            } label: {
-                sectionLabel(title: "Warmup", count: warmupSets.count)
-            }
-
-            VStack(alignment: .leading, spacing: 12) {
-                sectionLabel(title: "Working sets", count: workingSets.count)
-
-                HStack(alignment: .top, spacing: 8) {
-                    ForEach(workingSets, id: \.id) { set in
-                        TodaySetTile(
-                            set: set,
-                            onTap: { onTapSet(set.id) },
-                            onEditWeight: { onEditSetWeight(set.id, $0) },
-                            onDelete: { onDeleteSet(set.id) },
-                            weightLoading: weightLoading
-                        )
-                    }
-                }
-            }
+            workingSection
         }
         .padding(20)
-        .background(.thinMaterial, in: RoundedRectangle(cornerRadius: 24, style: .continuous))
+        .background(LiftTheme.card, in: RoundedRectangle(cornerRadius: 24, style: .continuous))
+        .overlay(
+            RoundedRectangle(cornerRadius: 24, style: .continuous)
+                .strokeBorder(LiftTheme.cardBorder, lineWidth: 1)
+        )
         .sheet(isPresented: $isShowingWorkingWeightEditor) {
             WeightEditorSheet(
                 title: "Edit working weight",
@@ -153,12 +65,131 @@ struct TodayExerciseCard: View {
         }
     }
 
+    private var headerRow: some View {
+        HStack(alignment: .top, spacing: 12) {
+            VStack(alignment: .leading, spacing: 6) {
+                Text(exerciseLog.exerciseNameSnapshot)
+                    .font(.title2.weight(.bold))
+                    .foregroundStyle(LiftTheme.textPrimary)
+
+                Text("\(exerciseLog.targetSetsSnapshot) × \(exerciseLog.targetRepsSnapshot)")
+                    .font(.subheadline)
+                    .foregroundStyle(LiftTheme.textSecondary)
+            }
+
+            Spacer(minLength: 12)
+
+            Button {
+                isShowingWorkingWeightEditor = true
+            } label: {
+                HStack(spacing: 6) {
+                    HStack(alignment: .firstTextBaseline, spacing: 4) {
+                        Text(formattedWeight)
+                            .font(.title.weight(.bold))
+                            .foregroundStyle(LiftTheme.accent)
+                        Text("kg")
+                            .font(.subheadline.weight(.medium))
+                            .foregroundStyle(LiftTheme.textSecondary)
+                    }
+                    Image(systemName: "pencil")
+                        .font(.footnote.weight(.semibold))
+                        .foregroundStyle(LiftTheme.textSecondary)
+                        .padding(8)
+                        .background(LiftTheme.raisedFill, in: Circle())
+                }
+            }
+            .buttonStyle(.plain)
+            .accessibilityLabel("Edit working weight, currently \(formattedWeight) kilograms")
+        }
+    }
+
+    private var warmupSection: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            sectionHeader(
+                title: "Warmup",
+                count: warmupSets.count,
+                isExpanded: warmupSets.isEmpty ? false : isShowingWarmups,
+                isToggleable: !warmupSets.isEmpty
+            ) {
+                hasUserToggledWarmupExpansion = true
+                withAnimation(.easeInOut) {
+                    isShowingWarmups.toggle()
+                }
+            }
+
+            if warmupSets.isEmpty || isShowingWarmups {
+                if warmupSets.isEmpty {
+                    Text("No warmup sets")
+                        .font(.subheadline)
+                        .foregroundStyle(LiftTheme.textSecondary)
+                } else {
+                    setRow(sets: warmupSets, nextUpID: nil)
+                }
+
+                Button {
+                    onAddWarmup()
+                } label: {
+                    HStack(spacing: 6) {
+                        Image(systemName: "plus.circle")
+                            .font(.body.weight(.semibold))
+                        Text("Add warmup")
+                            .font(.subheadline.weight(.semibold))
+                    }
+                    .foregroundStyle(LiftTheme.accent)
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 12)
+                    .frame(maxWidth: .infinity)
+                    .background(LiftTheme.accentMuted.opacity(0.5), in: Capsule())
+                    .overlay(Capsule().strokeBorder(LiftTheme.accentBorder, lineWidth: 1))
+                }
+                .buttonStyle(.plain)
+            }
+        }
+    }
+
+    private var workingSection: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            sectionHeader(
+                title: "Working sets",
+                count: workingSets.count,
+                isExpanded: true,
+                isToggleable: false,
+                onToggle: nil
+            )
+
+            setRow(sets: workingSets, nextUpID: nextUpWorkingSetID)
+        }
+    }
+
+    @ViewBuilder
+    private func setRow(sets: [DraftSet], nextUpID: UUID?) -> some View {
+        HStack(alignment: .top, spacing: 8) {
+            ForEach(sets, id: \.id) { set in
+                TodaySetTile(
+                    set: set,
+                    isNextUp: set.id == nextUpID,
+                    onTap: { onTapSet(set.id) },
+                    onEditWeight: { onEditSetWeight(set.id, $0) },
+                    onEditReps: set.kind == .warmup ? { onEditSetReps(set.id, $0) } : nil,
+                    onDelete: { onDeleteSet(set.id) },
+                    weightLoading: weightLoading
+                )
+            }
+        }
+    }
+
     private var warmupSets: [DraftSet] {
         exerciseLog.sets.filter { $0.kind == .warmup }
     }
 
     private var workingSets: [DraftSet] {
         exerciseLog.sets.filter { $0.kind == .working }
+    }
+
+    private var nextUpWorkingSetID: UUID? {
+        workingSets.first { set in
+            SetTapStateMachine.state(for: set.actualReps, targetReps: set.targetReps) == .pending
+        }?.id
     }
 
     private var allWarmupsComplete: Bool {
@@ -168,31 +199,58 @@ struct TodayExerciseCard: View {
         }
     }
 
-    private var warmupExpansionBinding: Binding<Bool> {
-        Binding(
-            get: { isShowingWarmups },
-            set: { newValue in
-                hasUserToggledWarmupExpansion = true
-                isShowingWarmups = newValue
-            }
-        )
-    }
-
     private var formattedWeight: String {
         exerciseLog.targetWeightKgSnapshot.formatted(
             .number.precision(.fractionLength(exerciseLog.targetWeightKgSnapshot.rounded(.down) == exerciseLog.targetWeightKgSnapshot ? 0 : 1))
         )
     }
 
+    private func completedCount(in sets: [DraftSet]) -> Int {
+        sets.reduce(into: 0) { count, set in
+            if SetTapStateMachine.state(for: set.actualReps, targetReps: set.targetReps) == .complete {
+                count += 1
+            }
+        }
+    }
+
     @ViewBuilder
-    private func sectionLabel(title: String, count: Int) -> some View {
-        HStack {
+    private func sectionHeader(
+        title: String,
+        count: Int,
+        isExpanded: Bool,
+        isToggleable: Bool,
+        onToggle: (() -> Void)? = nil
+    ) -> some View {
+        let progressLine = "\(completedCount(in: title == "Warmup" ? warmupSets : workingSets))/\(count)"
+
+        HStack(alignment: .center) {
             Text(title)
-                .font(.headline)
+                .font(.headline.weight(.semibold))
+                .foregroundStyle(LiftTheme.textPrimary)
+
             Spacer()
-            Text("\(count)")
-                .font(.caption.weight(.semibold))
-                .foregroundStyle(.secondary)
+
+            if isToggleable, let onToggle {
+                Button(action: onToggle) {
+                    HStack(spacing: 6) {
+                        Text(progressLine)
+                            .font(.subheadline.weight(.semibold))
+                            .monospacedDigit()
+                            .foregroundStyle(LiftTheme.accent)
+                        Image(systemName: isExpanded ? "chevron.up" : "chevron.down")
+                            .font(.caption.weight(.bold))
+                            .foregroundStyle(LiftTheme.accent)
+                    }
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel("\(title) — \(progressLine) complete. \(isExpanded ? "Collapse" : "Expand")")
+            } else {
+                Text(progressLine)
+                    .font(.subheadline.weight(.semibold))
+                    .monospacedDigit()
+                    .foregroundStyle(LiftTheme.accent)
+                    .accessibilityLabel("\(title) — \(progressLine) complete")
+            }
         }
     }
 }
@@ -215,5 +273,5 @@ struct TodayExerciseCard: View {
         )
         .padding()
     }
-    .background(Color(.systemGroupedBackground))
+    .background(LiftTheme.canvas)
 }

@@ -16,14 +16,16 @@ struct WorkoutPicker: View {
         } label: {
             HStack(spacing: 8) {
                 Text(selectedDayName)
-                    .font(.title2.weight(.semibold))
-                Image(systemName: isLocked ? "lock.fill" : "chevron.down")
-                    .font(.headline)
-                    .foregroundStyle(.secondary)
+                    .font(.title3.weight(.semibold))
+                    .foregroundStyle(LiftTheme.textPrimary)
+                Image(systemName: "chevron.down")
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundStyle(LiftTheme.accent)
             }
-            .padding(.horizontal, 14)
+            .padding(.horizontal, 16)
             .padding(.vertical, 10)
-            .background(.thinMaterial, in: Capsule())
+            .background(LiftTheme.accentMuted, in: Capsule())
+            .overlay(Capsule().strokeBorder(LiftTheme.accentBorder, lineWidth: 1))
         }
         .accessibilityLabel("Workout picker")
         .accessibilityValue(selectedDayName)
@@ -39,4 +41,6 @@ struct WorkoutPicker: View {
         onSelect: { _ in }
     )
     .padding()
+    .background(LiftTheme.canvas)
 }
+

@@ -58,7 +58,7 @@ struct TodayView: View {
                         .padding(.horizontal, 20)
                         .padding(.vertical, 24)
                     }
-                    .background(Color(.systemGroupedBackground))
+                    .background(LiftTheme.canvas)
                 } else if viewModel.isLoading {
                     ProgressView("Loading today’s workout…")
                         .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -178,7 +178,7 @@ struct TodayView: View {
     }
 
     private var header: some View {
-        VStack(alignment: .leading, spacing: 8) {
+        VStack(alignment: .leading, spacing: 12) {
             WorkoutPicker(
                 selectedDayName: viewModel.selectedProgramDay?.name ?? "Choose workout",
                 availableProgramDays: viewModel.availableProgramDays,
@@ -186,24 +186,25 @@ struct TodayView: View {
                 onSelect: handleWorkoutPick(_:)
             )
 
-            if let programDayLockHint = viewModel.programDayLockHint {
-                Text(programDayLockHint)
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-            }
-
-            HStack(spacing: 12) {
-                Text(Date.now.formatted(date: .complete, time: .omitted))
+            HStack(spacing: 14) {
+                Label(Date.now.formatted(.dateTime.weekday(.abbreviated).day().month(.abbreviated).year()), systemImage: "calendar")
+                    .labelStyle(.titleAndIcon)
                     .font(.subheadline)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(LiftTheme.textSecondary)
+
+                if viewModel.activeDraftStartedAt != nil {
+                    Text("•")
+                        .foregroundStyle(LiftTheme.textTertiary)
+                }
 
                 if let startedAt = viewModel.activeDraftStartedAt {
                     TimelineView(.periodic(from: .now, by: 1)) { context in
                         let elapsed = formattedElapsed(since: startedAt, now: context.date)
-                        Text(elapsed)
+                        Label(elapsed, systemImage: "clock")
+                            .labelStyle(.titleAndIcon)
                             .font(.subheadline)
                             .monospacedDigit()
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(LiftTheme.textSecondary)
                             .accessibilityLabel("Workout elapsed time")
                             .accessibilityValue(elapsed)
                     }

@@ -18,6 +18,7 @@ struct LiftApp: App {
                 .modelContainer(persistenceService.container)
                 .environment(\.restTimer, restTimer)
                 .environment(\.haptics, .live)
+                .liftThemedScene()
         }
     }
 }

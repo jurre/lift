@@ -58,6 +58,7 @@
 		D7916B3FC47853A0E7763618 /* ExerciseSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6DB784BD32C057F0C05A482C /* ExerciseSettingsView.swift */; };
 		DA648B4EECCD573D3AA62E79 /* PlateCalculatorSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00EDFE79ED1560BE3F4E03D6 /* PlateCalculatorSheet.swift */; };
 		DBA95CE115704767A9E70B64 /* WarmupCalculator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0D7BFC6516AE4A10A7A573C4 /* WarmupCalculator.swift */; };
+		DD2EA39D4F00D3F1A29CB36B /* LiftTheme.swift in Sources */ = {isa = PBXBuildFile; fileRef = F79705EF3AC4FB68DF3E8E23 /* LiftTheme.swift */; };
 		E1635D2D05517BCDC60DFD5D /* FirstRunWizard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 800F3F989762EC3FA20378BE /* FirstRunWizard.swift */; };
 		E2052C8DEC46FEB64391ED03 /* SessionDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6D91F9E1682CC73DE56F5CC1 /* SessionDetailView.swift */; };
 		E4056C99D64E2BDC540C7B8F /* HistorySetRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3675A49DCFF3078F09D1C02 /* HistorySetRow.swift */; };
@@ -164,6 +165,7 @@
 		E4A25FBD3F292C82F171ECFC /* TestHelpers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TestHelpers.swift; sourceTree = "<group>"; };
 		EDE11F6602FA9991A6FF2967 /* SetTapStateMachine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SetTapStateMachine.swift; sourceTree = "<group>"; };
 		F2DD1C4A1CB233299793CEB6 /* LiftTests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = LiftTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		F79705EF3AC4FB68DF3E8E23 /* LiftTheme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiftTheme.swift; sourceTree = "<group>"; };
 		FD22B7E7137D56729AE0F36B /* TodayViewModelSetTapTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TodayViewModelSetTapTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -190,6 +192,7 @@
 				E165F74B2B2009FD0FEE9490 /* Models */,
 				47F6EBBCBA756D9528DBAE2A /* Onboarding */,
 				464779B92BEF4656C630E35C /* Persistence */,
+				AB705F3C505C4A7107003B95 /* Theme */,
 				30182AC3E3F24E9B1A50A66E /* Views */,
 				B4298D96C4EEA93C6A209BD5 /* Info.plist */,
 				22981D9EA5B338D2E9E3C194 /* LiftApp.swift */,
@@ -289,6 +292,14 @@
 				D670AB099D3E06A58501162F /* LiftUITests.xctest */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		AB705F3C505C4A7107003B95 /* Theme */ = {
+			isa = PBXGroup;
+			children = (
+				F79705EF3AC4FB68DF3E8E23 /* LiftTheme.swift */,
+			);
+			path = Theme;
 			sourceTree = "<group>";
 		};
 		C0E1D6A23B31886DA1FEFA77 = {
@@ -502,6 +513,7 @@
 				04F10DD5A824FA2698302B65 /* LiftModelContainer.swift in Sources */,
 				F181C13E70DC9697D9322425 /* LiftSchema.swift in Sources */,
 				1699F973C77FC2E16D0B546B /* LiftSeeder.swift in Sources */,
+				DD2EA39D4F00D3F1A29CB36B /* LiftTheme.swift in Sources */,
 				A8BB8CEDC7071583D20DC0BA /* LocalDay.swift in Sources */,
 				3BC469FDC98258B7EF447FD0 /* ModelEnums.swift in Sources */,
 				C899D8A828BEB7B660E6BDA8 /* NotificationAuthorizationCoordinator.swift in Sources */,
