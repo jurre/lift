@@ -104,7 +104,7 @@ struct TodayViewModelSwitchTests {
 
         let viewModel = TodayViewModel(
             modelContext: context,
-            now: fixtureDate(),
+            clock: { fixtureDate() },
             timeZone: .utc,
             restTimer: RecordingRestTimerForSwitchTests()
         )

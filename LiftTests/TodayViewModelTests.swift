@@ -14,7 +14,7 @@ struct TodayViewModelTests {
 
         let viewModel = TodayViewModel(
             modelContext: context,
-            now: fixtureDate(),
+            clock: { fixtureDate() },
             timeZone: .utc
         )
 
@@ -46,7 +46,7 @@ struct TodayViewModelTests {
 
         let viewModel = TodayViewModel(
             modelContext: context,
-            now: fixtureDate(),
+            clock: { fixtureDate() },
             timeZone: .utc
         )
 
@@ -72,7 +72,7 @@ struct TodayViewModelTests {
 
         let viewModel = TodayViewModel(
             modelContext: context,
-            now: fixtureDate(),
+            clock: { fixtureDate() },
             timeZone: .utc
         )
 
@@ -97,7 +97,7 @@ struct TodayViewModelTests {
 
         let viewModel = TodayViewModel(
             modelContext: context,
-            now: fixtureDate(),
+            clock: { fixtureDate() },
             timeZone: .utc
         )
         viewModel.load()
@@ -117,7 +117,7 @@ struct TodayViewModelTests {
 
         let viewModel = TodayViewModel(
             modelContext: context,
-            now: fixtureDate(),
+            clock: { fixtureDate() },
             timeZone: .utc
         )
         viewModel.load()
@@ -157,7 +157,7 @@ struct TodayViewModelTests {
 
         let viewModel = TodayViewModel(
             modelContext: context,
-            now: fixtureDate(),
+            clock: { fixtureDate() },
             timeZone: .utc
         )
         viewModel.load()
@@ -184,7 +184,7 @@ struct TodayViewModelTests {
 
         let viewModel = TodayViewModel(
             modelContext: context,
-            now: fixtureDate(),
+            clock: { fixtureDate() },
             timeZone: .utc
         )
         viewModel.load()

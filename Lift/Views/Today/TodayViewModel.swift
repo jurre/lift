@@ -38,17 +38,20 @@ final class TodayViewModel {
     private(set) var activeDraftStartedAt: Date?
     private var reopenedDraftID: UUID?
     private var activeDraftSessionID: UUID?
-    private let now: Date
+    @ObservationIgnored
+    private let clock: () -> Date
     private let timeZone: TimeZone
+
+    private var now: Date { clock() }
 
     init(
         modelContext: ModelContext? = nil,
-        now: Date = .now,
+        clock: @escaping () -> Date = { Date.now },
         timeZone: TimeZone = .current,
         restTimer: RestTimerStarting = RestTimerStub()
     ) {
         self.modelContext = modelContext
-        self.now = now
+        self.clock = clock
         self.timeZone = timeZone
         self.restTimer = restTimer
     }

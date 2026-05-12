@@ -68,6 +68,32 @@ struct TodayViewModelSetTapTests {
         #expect(request.durationSeconds == 180)
     }
 
+    @Test("rest timer starts from the current clock, not the time the view model was created")
+    func restStartsFromCurrentClock() async throws {
+        let restTimer = RecordingRestTimer()
+        let testClock = TestClock(fixtureDate())
+        let fixture = try makeFixture(restTimer: restTimer, clock: testClock.now)
+        let workingSet = try #require(
+            fixture.viewModel.draftPlan?.exerciseLogs.first?.sets.first(where: { $0.kind == .working })
+        )
+
+        // Simulate the user sitting on the Today screen for ten minutes
+        // before tapping their first working set.
+        let tapTime = fixtureDate().addingTimeInterval(600)
+        testClock.current = tapTime
+
+        try await fixture.viewModel.tapSet(workingSet.id)
+
+        let request = try #require(restTimer.startedRests.first)
+        #expect(
+            request.now == tapTime,
+            "rest timer should start at the moment of tap, not at view-model init"
+        )
+
+        let persisted = try #require(try fetchLoggedSet(id: workingSet.id, from: fixture.context))
+        #expect(persisted.completedAt == tapTime)
+    }
+
     @Test("warmup completions do not start a rest timer")
     func warmupsDoNotStartRest() async throws {
         let restTimer = RecordingRestTimer()
@@ -240,7 +266,8 @@ struct TodayViewModelSetTapTests {
 
     private func makeFixture(
         squatWeight: Double = 20,
-        restTimer: some RestTimerStarting = RecordingRestTimer()
+        restTimer: some RestTimerStarting = RecordingRestTimer(),
+        clock: @escaping () -> Date = { Date(timeIntervalSince1970: 1_735_689_600) }
     ) throws -> TodayFixture {
         let container = try makeInMemoryContainer()
         let context = ModelContext(container)
@@ -249,7 +276,7 @@ struct TodayViewModelSetTapTests {
 
         let viewModel = TodayViewModel(
             modelContext: context,
-            now: fixtureDate(),
+            clock: clock,
             timeZone: .utc,
             restTimer: restTimer
         )
@@ -260,7 +287,7 @@ struct TodayViewModelSetTapTests {
         return TodayFixture(
             context: context,
             viewModel: viewModel,
-            now: fixtureDate(),
+            now: clock(),
             calendar: utcCalendar(),
             weightLoading: WeightLoading(barWeightKg: user.barWeightKg, inventory: user.orderedPlates)
         )
@@ -313,20 +340,29 @@ private final class RecordingRestTimer: RestTimerStarting {
         let exerciseName: String
         let setID: UUID
         let durationSeconds: Int
+        let now: Date
     }
 
     private(set) var startedRests: [StartRequest] = []
 
-    func start(exerciseLogID: UUID, exerciseName: String, setID: UUID, durationSeconds: Int, now _: Date) async {
+    func start(exerciseLogID: UUID, exerciseName: String, setID: UUID, durationSeconds: Int, now: Date) async {
         startedRests.append(
             StartRequest(
                 exerciseLogID: exerciseLogID,
                 exerciseName: exerciseName,
                 setID: setID,
-                durationSeconds: durationSeconds
+                durationSeconds: durationSeconds,
+                now: now
             )
         )
     }
+}
+
+@MainActor
+private final class TestClock {
+    var current: Date
+    init(_ current: Date) { self.current = current }
+    func now() -> Date { current }
 }
 
 private extension TimeZone {

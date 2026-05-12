@@ -25,7 +25,7 @@ struct PreviewSupport {
         let context = ModelContext(container)
         let viewModel = TodayViewModel(
             modelContext: context,
-            now: Date(timeIntervalSince1970: 1_736_121_600),
+            clock: { Date(timeIntervalSince1970: 1_736_121_600) },
             timeZone: TimeZone(identifier: "America/Los_Angeles") ?? .current
         )
         viewModel.load()
