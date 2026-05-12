@@ -12,31 +12,32 @@ struct TodaySetTile: View {
 
     var body: some View {
         Button(action: handleTap) {
-            VStack(spacing: 8) {
+            VStack(spacing: 6) {
                 statusIcon
-                    .frame(height: 30)
+                    .frame(height: 28)
 
                 Text(label)
-                    .font(.subheadline.weight(.semibold))
+                    .font(.body.weight(.semibold))
                     .monospacedDigit()
                     .lineLimit(1)
                     .minimumScaleFactor(0.6)
+                    .foregroundStyle(labelColor)
 
-                if set.kind == .working {
+                if set.kind == .working, isShowingAdjustHint {
                     Text("tap to adjust")
                         .font(.caption2)
                         .foregroundStyle(.secondary)
                         .lineLimit(1)
-                        .opacity(isShowingAdjustHint ? 1 : 0)
+                        .transition(.opacity)
                 }
             }
             .frame(maxWidth: .infinity)
-            .padding(.vertical, 14)
+            .padding(.vertical, 12)
             .padding(.horizontal, 6)
             .background(stateBackground, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
             .overlay(
                 RoundedRectangle(cornerRadius: 14, style: .continuous)
-                    .strokeBorder(stateBorder, lineWidth: 1)
+                    .strokeBorder(stateBorder, lineWidth: stateBorderWidth)
             )
             .contentShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
         }
@@ -94,13 +95,13 @@ struct TodaySetTile: View {
         switch cellState {
         case .complete:
             Image(systemName: "checkmark.circle.fill")
-                .font(.system(size: 28, weight: .regular))
+                .font(.system(size: 26, weight: .regular))
                 .foregroundStyle(.green)
         case let .partial(reps):
             ZStack {
                 Circle()
                     .fill(Color.orange)
-                    .frame(width: 30, height: 30)
+                    .frame(width: 28, height: 28)
                 Text("\(reps)")
                     .font(.callout.weight(.bold))
                     .foregroundStyle(.white)
@@ -108,8 +109,8 @@ struct TodaySetTile: View {
             }
         case .pending:
             Image(systemName: "circle")
-                .font(.system(size: 28, weight: .regular))
-                .foregroundStyle(.secondary)
+                .font(.system(size: 24, weight: .regular))
+                .foregroundStyle(.tertiary)
         }
     }
 
@@ -119,17 +120,31 @@ struct TodaySetTile: View {
 
     private var stateBackground: Color {
         switch cellState {
-        case .complete: return Color.green.opacity(0.12)
-        case .partial: return Color.orange.opacity(0.12)
-        case .pending: return Color.secondary.opacity(0.10)
+        case .complete: return Color.green.opacity(0.16)
+        case .partial: return Color.orange.opacity(0.16)
+        case .pending: return Color.clear
         }
     }
 
     private var stateBorder: Color {
         switch cellState {
-        case .complete: return Color.green.opacity(0.35)
-        case .partial: return Color.orange.opacity(0.35)
-        case .pending: return Color.secondary.opacity(0.20)
+        case .complete: return Color.green.opacity(0.55)
+        case .partial: return Color.orange.opacity(0.55)
+        case .pending: return Color.primary.opacity(0.12)
+        }
+    }
+
+    private var stateBorderWidth: CGFloat {
+        switch cellState {
+        case .complete, .partial: return 1.5
+        case .pending: return 1
+        }
+    }
+
+    private var labelColor: Color {
+        switch cellState {
+        case .complete, .partial: return .primary
+        case .pending: return .secondary
         }
     }
 
