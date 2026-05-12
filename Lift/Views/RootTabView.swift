@@ -16,14 +16,10 @@ struct RootTabView: View {
                     Label("History", systemImage: "clock.arrow.circlepath")
                 }
 
-            PlaceholderTabView(
-                title: "Settings",
-                message: "Coming soon.",
-                systemImage: "gear"
-            )
-            .tabItem {
-                Label("Settings", systemImage: "gear")
-            }
+            SettingsView()
+                .tabItem {
+                    Label("Settings", systemImage: "gear")
+                }
         }
         .task {
             draftReopenCoordinator.setModelContext(modelContext)
@@ -48,23 +44,6 @@ struct RootTabView: View {
             guard draftReopenCoordinator.confirmationMessage != nil else { return }
             try? await Task.sleep(for: .seconds(2))
             draftReopenCoordinator.clearConfirmationMessage()
-        }
-    }
-}
-
-private struct PlaceholderTabView: View {
-    let title: String
-    let message: String
-    let systemImage: String
-
-    var body: some View {
-        NavigationStack {
-            ContentUnavailableView(
-                title,
-                systemImage: systemImage,
-                description: Text(message)
-            )
-            .navigationTitle(title)
         }
     }
 }

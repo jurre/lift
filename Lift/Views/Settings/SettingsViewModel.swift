@@ -157,6 +157,47 @@ final class SettingsViewModel {
         refresh()
     }
 
+    // MARK: - Equipment (no draft gate per design)
+
+    func updateBarWeight(to newValueKg: Double) throws {
+        guard let modelContext, let user else { throw SettingsViewModelError.missingUser }
+        let clamped = max(0, newValueKg)
+        guard user.barWeightKg != clamped else { return }
+        user.barWeightKg = clamped
+        try modelContext.save()
+        refresh()
+    }
+
+    func addPlate() throws {
+        guard let modelContext, let user else { throw SettingsViewModelError.missingUser }
+        let item = PlateInventoryItem(weightKg: 1.25, countTotal: 2, user: user)
+        modelContext.insert(item)
+        user.plates.append(item)
+        sortPlates(user)
+        try modelContext.save()
+        refresh()
+    }
+
+    func removePlate(_ item: PlateInventoryItem) throws {
+        guard let modelContext, let user else { throw SettingsViewModelError.missingUser }
+        user.plates.removeAll { $0.persistentModelID == item.persistentModelID }
+        modelContext.delete(item)
+        sortPlates(user)
+        try modelContext.save()
+        refresh()
+    }
+
+    func savePlateEdits() throws {
+        guard let modelContext, let user else { throw SettingsViewModelError.missingUser }
+        sortPlates(user)
+        try modelContext.save()
+        refresh()
+    }
+
+    private func sortPlates(_ user: User) {
+        user.plates.sort { $0.weightKg > $1.weightKg }
+    }
+
     // MARK: - Reset all data
 
     func resetAllData() throws {

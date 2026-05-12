@@ -22,6 +22,7 @@
 		2CF5F0F590EAEE2E8EBA7E25 /* HistoryWorkingSetEditorSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB938BB0EC65C80A46577CB7 /* HistoryWorkingSetEditorSheet.swift */; };
 		2E9EBF9E374E90D62D5FC2B7 /* RestTimerServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AF3CC46FE32EBE7B215E38EA /* RestTimerServiceTests.swift */; };
 		3BC469FDC98258B7EF447FD0 /* ModelEnums.swift in Sources */ = {isa = PBXBuildFile; fileRef = 67D2226119EB06025BD6EBF1 /* ModelEnums.swift */; };
+		4730BE74E90916BB8C54DFA2 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 02A3BEF582AEB2792469AEF2 /* SettingsView.swift */; };
 		47EF476BD570186ED5492D45 /* Progression.swift in Sources */ = {isa = PBXBuildFile; fileRef = 84254148D324D035CD6144E5 /* Progression.swift */; };
 		51D1ED9E49F56FEF0A42EB09 /* DraftSessionService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6ABADBABA588081F27E7F03D /* DraftSessionService.swift */; };
 		5AF552F079281932D52CF87E /* PersistenceService.swift in Sources */ = {isa = PBXBuildFile; fileRef = CD3AFB17718E3D2F3D79F000 /* PersistenceService.swift */; };
@@ -29,6 +30,7 @@
 		6B1A7B64AF97C8925421429E /* DraftSessionServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C173F8AA389CE9CB644AEC4D /* DraftSessionServiceTests.swift */; };
 		6C6CEC4B998A82121F8F834B /* WorkoutScheduler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 58D59D5F0284FAE1501D8CA3 /* WorkoutScheduler.swift */; };
 		6E03C2D8AB651D2E0E42081E /* SetTapStateMachineTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 59C10CCB92E389E50428B6E1 /* SetTapStateMachineTests.swift */; };
+		757BE6530C2DF9D3B5C342A0 /* EquipmentSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C13E6614A3ACC065ECBC07A /* EquipmentSettingsView.swift */; };
 		7F2FAD78D09ED34C2BD20802 /* WeightLoadingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5668C5D4D64E5B5529BA1178 /* WeightLoadingTests.swift */; };
 		850729C01ED08163E4E5E30C /* TestHelpers.swift in Sources */ = {isa = PBXBuildFile; fileRef = E4A25FBD3F292C82F171ECFC /* TestHelpers.swift */; };
 		8887D21F78FAC8F43F68AAB8 /* InvariantTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9272D7D9AE33ABAF6EB59754 /* InvariantTests.swift */; };
@@ -51,6 +53,7 @@
 		BB7A83DA439167429C620798 /* TodayViewModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 916972C7CA250F6075D00080 /* TodayViewModelTests.swift */; };
 		C899D8A828BEB7B660E6BDA8 /* NotificationAuthorizationCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2D24718581B2427148674CDB /* NotificationAuthorizationCoordinator.swift */; };
 		D72E7666D9216B0190744C69 /* SetTapStateMachine.swift in Sources */ = {isa = PBXBuildFile; fileRef = EDE11F6602FA9991A6FF2967 /* SetTapStateMachine.swift */; };
+		D7916B3FC47853A0E7763618 /* ExerciseSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6DB784BD32C057F0C05A482C /* ExerciseSettingsView.swift */; };
 		DA648B4EECCD573D3AA62E79 /* PlateCalculatorSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00EDFE79ED1560BE3F4E03D6 /* PlateCalculatorSheet.swift */; };
 		DBA95CE115704767A9E70B64 /* WarmupCalculator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0D7BFC6516AE4A10A7A573C4 /* WarmupCalculator.swift */; };
 		E1635D2D05517BCDC60DFD5D /* FirstRunWizard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 800F3F989762EC3FA20378BE /* FirstRunWizard.swift */; };
@@ -88,6 +91,7 @@
 
 /* Begin PBXFileReference section */
 		00EDFE79ED1560BE3F4E03D6 /* PlateCalculatorSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlateCalculatorSheet.swift; sourceTree = "<group>"; };
+		02A3BEF582AEB2792469AEF2 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		0D7BFC6516AE4A10A7A573C4 /* WarmupCalculator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WarmupCalculator.swift; sourceTree = "<group>"; };
 		16180F82202B745F16D5AF1D /* LiftModelContainer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiftModelContainer.swift; sourceTree = "<group>"; };
 		1B4E0C99CB8E9D2898981A06 /* AppEnvironment.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppEnvironment.swift; sourceTree = "<group>"; };
@@ -113,10 +117,12 @@
 		67D2226119EB06025BD6EBF1 /* ModelEnums.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ModelEnums.swift; sourceTree = "<group>"; };
 		6ABADBABA588081F27E7F03D /* DraftSessionService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DraftSessionService.swift; sourceTree = "<group>"; };
 		6D91F9E1682CC73DE56F5CC1 /* SessionDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SessionDetailView.swift; sourceTree = "<group>"; };
+		6DB784BD32C057F0C05A482C /* ExerciseSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExerciseSettingsView.swift; sourceTree = "<group>"; };
 		724C28029DCBE10D147DE1D1 /* DraftSessionFactory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DraftSessionFactory.swift; sourceTree = "<group>"; };
 		74B9EDBB76D108979AF7414D /* TodayViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TodayViewModel.swift; sourceTree = "<group>"; };
 		77012ABD1E4322536724A076 /* UndoCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UndoCoordinator.swift; sourceTree = "<group>"; };
 		787F3048EA01D0F5C9C5F2D2 /* HistorySectionBuilder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HistorySectionBuilder.swift; sourceTree = "<group>"; };
+		7C13E6614A3ACC065ECBC07A /* EquipmentSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EquipmentSettingsView.swift; sourceTree = "<group>"; };
 		7FB774771FCC1764981F1FDA /* SeedingTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SeedingTests.swift; sourceTree = "<group>"; };
 		800F3F989762EC3FA20378BE /* FirstRunWizard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FirstRunWizard.swift; sourceTree = "<group>"; };
 		84254148D324D035CD6144E5 /* Progression.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Progression.swift; sourceTree = "<group>"; };
@@ -189,6 +195,9 @@
 		297396C6518141C74155874B /* Settings */ = {
 			isa = PBXGroup;
 			children = (
+				7C13E6614A3ACC065ECBC07A /* EquipmentSettingsView.swift */,
+				6DB784BD32C057F0C05A482C /* ExerciseSettingsView.swift */,
+				02A3BEF582AEB2792469AEF2 /* SettingsView.swift */,
 				92DD57EDC737AAA74855796C /* SettingsViewModel.swift */,
 			);
 			path = Settings;
@@ -473,7 +482,9 @@
 				A069C67F69BC97D171632D54 /* DraftReopenCoordinator.swift in Sources */,
 				A519E1B768850AECEB52D950 /* DraftSessionFactory.swift in Sources */,
 				51D1ED9E49F56FEF0A42EB09 /* DraftSessionService.swift in Sources */,
+				757BE6530C2DF9D3B5C342A0 /* EquipmentSettingsView.swift in Sources */,
 				257390548A5ED6A08D51CDA9 /* ExerciseLogSummary.swift in Sources */,
+				D7916B3FC47853A0E7763618 /* ExerciseSettingsView.swift in Sources */,
 				E1635D2D05517BCDC60DFD5D /* FirstRunWizard.swift in Sources */,
 				8E35155AE70066521364C30F /* HistorySectionBuilder.swift in Sources */,
 				E4056C99D64E2BDC540C7B8F /* HistorySetRow.swift in Sources */,
@@ -496,6 +507,7 @@
 				F9EE758C6E1D704BDD3A18C0 /* RootTabView.swift in Sources */,
 				E2052C8DEC46FEB64391ED03 /* SessionDetailView.swift in Sources */,
 				D72E7666D9216B0190744C69 /* SetTapStateMachine.swift in Sources */,
+				4730BE74E90916BB8C54DFA2 /* SettingsView.swift in Sources */,
 				E7774E30A849D203263133EC /* SettingsViewModel.swift in Sources */,
 				AEF9A03B7BEC39506D66C3E3 /* TodayExerciseCard.swift in Sources */,
 				9FDC11AD8309C879B51DE30F /* TodaySetTile.swift in Sources */,
