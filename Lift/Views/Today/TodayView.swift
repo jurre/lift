@@ -8,6 +8,7 @@ struct TodayView: View {
     @State private var viewModel = TodayViewModel()
     @State private var undoCoordinator = UndoCoordinator()
     @State private var isShowingFinishSheet = false
+    @State private var errorMessage: String?
     let draftReopenCoordinator: DraftReopenCoordinator
 
     var body: some View {
@@ -113,6 +114,11 @@ struct TodayView: View {
                     )
                 }
             }
+            .alert("Something went wrong", isPresented: errorAlertBinding) {
+                Button("OK", role: .cancel) { errorMessage = nil }
+            } message: {
+                Text(errorMessage ?? "")
+            }
         }
     }
 
@@ -176,7 +182,7 @@ struct TodayView: View {
         do {
             try action()
         } catch {
-            assertionFailure("Today action failed: \(error)")
+            errorMessage = describe(error)
         }
     }
 
@@ -185,7 +191,7 @@ struct TodayView: View {
             do {
                 try await action()
             } catch {
-                assertionFailure("Today action failed: \(error)")
+                errorMessage = describe(error)
             }
         }
     }
@@ -197,9 +203,23 @@ struct TodayView: View {
                     haptics.workingSetCompleted()
                 }
             } catch {
-                assertionFailure("Today action failed: \(error)")
+                errorMessage = describe(error)
             }
         }
+    }
+
+    private var errorAlertBinding: Binding<Bool> {
+        Binding(
+            get: { errorMessage != nil },
+            set: { newValue in if !newValue { errorMessage = nil } }
+        )
+    }
+
+    private func describe(_ error: Error) -> String {
+        if let localized = error as? LocalizedError, let description = localized.errorDescription {
+            return description
+        }
+        return error.localizedDescription
     }
 
     private func formattedElapsed(since startedAt: Date, now: Date) -> String {
