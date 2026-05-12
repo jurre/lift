@@ -244,30 +244,41 @@ private struct FinishWorkoutSheet: View {
     var body: some View {
         NavigationStack {
             VStack(alignment: .leading, spacing: 20) {
-                Text("Finish workout?")
-                    .font(.title2.weight(.semibold))
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("Finish workout?")
+                        .font(.title2.weight(.semibold))
 
-                if preview.pendingWorkingSetCount > 0 {
-                    Text("\(preview.pendingWorkingSetCount) working sets not yet logged")
-                        .font(.subheadline.weight(.medium))
-                        .foregroundStyle(.orange)
+                    if preview.pendingWorkingSetCount > 0 {
+                        Text("\(preview.pendingWorkingSetCount) working sets not yet logged")
+                            .font(.subheadline.weight(.medium))
+                            .foregroundStyle(.orange)
+                    }
                 }
 
                 DraftFinishPreviewSummary(preview: preview, compact: false)
 
                 Spacer(minLength: 0)
 
-                VStack(spacing: 12) {
-                    Button("Finish & apply progression", action: onFinish)
-                        .buttonStyle(.borderedProminent)
-                        .disabled(!preview.canApplyProgression)
+                VStack(spacing: 10) {
+                    Button(action: onFinish) {
+                        Text("Finish & apply progression")
+                            .frame(maxWidth: .infinity)
+                    }
+                    .controlSize(.large)
+                    .buttonStyle(.borderedProminent)
+                    .disabled(!preview.canApplyProgression)
 
-                    Button("End without progression", action: onEndWithoutProgression)
-                        .buttonStyle(.bordered)
-                        .tint(.orange)
+                    Button(action: onEndWithoutProgression) {
+                        Text("End without progression")
+                            .frame(maxWidth: .infinity)
+                    }
+                    .controlSize(.large)
+                    .buttonStyle(.bordered)
 
                     Button("Cancel", role: .cancel, action: onCancel)
-                        .buttonStyle(.bordered)
+                        .controlSize(.large)
+                        .frame(maxWidth: .infinity)
+                        .padding(.top, 4)
                 }
             }
             .padding(24)
