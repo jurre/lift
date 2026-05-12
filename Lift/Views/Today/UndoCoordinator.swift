@@ -82,7 +82,7 @@ struct SnackbarView: View {
         HStack(spacing: 12) {
             Text(message)
                 .font(.subheadline.weight(.medium))
-                .foregroundStyle(.white)
+                .foregroundStyle(LiftTheme.textPrimary)
                 .multilineTextAlignment(.leading)
 
             Spacer(minLength: 8)
@@ -90,12 +90,13 @@ struct SnackbarView: View {
             if let actionTitle, let action {
                 Button(actionTitle, action: action)
                     .font(.subheadline.weight(.semibold))
-                    .foregroundStyle(.white)
+                    .foregroundStyle(LiftTheme.accent)
             }
         }
         .padding(.horizontal, 16)
         .padding(.vertical, 14)
-        .background(Color.black.opacity(0.88), in: Capsule())
-        .shadow(radius: 8, y: 4)
+        .background(LiftTheme.card, in: Capsule())
+        .overlay(Capsule().strokeBorder(LiftTheme.cardBorder, lineWidth: 1))
+        .shadow(color: Color.black.opacity(0.45), radius: 12, y: 6)
     }
 }

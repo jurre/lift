@@ -30,7 +30,6 @@ struct TodayView: View {
                             ForEach(draftPlan.exerciseLogs, id: \.id) { exerciseLog in
                                 TodayExerciseCard(
                                     exerciseLog: exerciseLog,
-                                    plateSuggestion: viewModel.plateSuggestion(for: exerciseLog),
                                     weightLoading: viewModel.weightLoading,
                                     onTapSet: { setID in
                                         performAsync { try await viewModel.tapSet(setID) }
@@ -218,7 +217,7 @@ struct TodayView: View {
             if let hint = viewModel.finishWorkoutHint {
                 Text(hint)
                     .font(.caption)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(LiftTheme.textSecondary)
                     .frame(maxWidth: .infinity, alignment: .center)
             }
         }
@@ -346,12 +345,12 @@ struct DraftFinishPreviewSummary: View {
                     if !compact {
                         Text(exercise.setSummary.isEmpty ? "—" : exercise.setSummary)
                             .font(.caption)
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(LiftTheme.textSecondary)
                     }
 
                     Text(compact ? compactLine(for: exercise) : detailLine(for: exercise))
                         .font(.subheadline)
-                        .foregroundStyle(.primary)
+                        .foregroundStyle(LiftTheme.textPrimary)
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(.vertical, 4)
@@ -360,12 +359,16 @@ struct DraftFinishPreviewSummary: View {
             if let nextProgramDayName = preview.nextProgramDayName {
                 Text(nextSummary(dayName: nextProgramDayName, exerciseNames: preview.nextProgramExerciseNames))
                     .font(.footnote.weight(.medium))
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(LiftTheme.textSecondary)
                     .padding(.top, 4)
             }
         }
         .padding(16)
-        .background(Color(.secondarySystemGroupedBackground), in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+        .background(LiftTheme.card, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+        .overlay(
+            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                .strokeBorder(LiftTheme.cardBorder, lineWidth: 1)
+        )
     }
 
     private func detailLine(for exercise: FinishWorkoutPreview.PerExercise) -> String {

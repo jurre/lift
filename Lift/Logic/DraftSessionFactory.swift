@@ -75,6 +75,7 @@ struct DraftSessionFactory {
                 targetWeightKgSnapshot: progression.currentWeightKg,
                 targetSetsSnapshot: progression.workingSets,
                 targetRepsSnapshot: progression.workingReps,
+                stalledCount: progression.stalledCount,
                 sets: warmups + workingSets
             ))
         }
@@ -150,14 +151,19 @@ struct DraftSessionPlan {
         self.exerciseLogs = exerciseLogs
     }
 
-    init(session: WorkoutSession) {
+    init(session: WorkoutSession, stalledCounts: [String: Int] = [:]) {
         self.init(
             id: session.id,
             workoutDayID: session.workoutDayID,
             timeZoneIdentifier: session.timeZoneIdentifierAtStart,
             startedAt: session.startedAt,
             programDay: session.programDay ?? ProgramDay(name: "Workout", orderInRotation: 0),
-            exerciseLogs: session.orderedExerciseLogs.map(DraftExerciseLog.init(log:))
+            exerciseLogs: session.orderedExerciseLogs.map { log in
+                DraftExerciseLog(
+                    log: log,
+                    stalledCount: log.exercise.flatMap { stalledCounts[$0.key] } ?? 0
+                )
+            }
         )
     }
 }
@@ -170,6 +176,7 @@ struct DraftExerciseLog {
     let targetWeightKgSnapshot: Double
     let targetSetsSnapshot: Int
     let targetRepsSnapshot: Int
+    let stalledCount: Int
     let sets: [DraftSet]
 
     init(
@@ -179,6 +186,7 @@ struct DraftExerciseLog {
         targetWeightKgSnapshot: Double,
         targetSetsSnapshot: Int,
         targetRepsSnapshot: Int,
+        stalledCount: Int = 0,
         sets: [DraftSet]
     ) {
         self.id = id
@@ -187,10 +195,11 @@ struct DraftExerciseLog {
         self.targetWeightKgSnapshot = targetWeightKgSnapshot
         self.targetSetsSnapshot = targetSetsSnapshot
         self.targetRepsSnapshot = targetRepsSnapshot
+        self.stalledCount = stalledCount
         self.sets = sets
     }
 
-    init(log: ExerciseLog) {
+    init(log: ExerciseLog, stalledCount: Int = 0) {
         self.init(
             id: log.id,
             exercise: log.exercise,
@@ -198,6 +207,7 @@ struct DraftExerciseLog {
             targetWeightKgSnapshot: log.targetWeightKgSnapshot,
             targetSetsSnapshot: log.targetSetsSnapshot,
             targetRepsSnapshot: log.targetRepsSnapshot,
+            stalledCount: stalledCount,
             sets: log.orderedSets.map(DraftSet.init(set:))
         )
     }

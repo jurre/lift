@@ -106,7 +106,7 @@ final class TodayViewModel {
             if let persistedDraft = activeDraftSession(using: draftService) {
                 activeDraftSessionID = persistedDraft.id
                 selectedProgramDay = matchProgramDay(persistedDraft.programDay, in: days)
-                draftPlan = DraftSessionPlan(session: persistedDraft)
+                draftPlan = DraftSessionPlan(session: persistedDraft, stalledCounts: stalledCountsByExerciseKey())
                 isProgramDayLocked = true
                 programDayLockHint = makeProgramDayLockHint(for: persistedDraft)
                 finishWorkoutPreview = try draftService.finishWorkoutPreview(for: persistedDraft)
@@ -411,26 +411,6 @@ final class TodayViewModel {
         syncDraftPlan(session: session)
     }
 
-    func plateSuggestion(for exerciseLog: DraftExerciseLog) -> String {
-        guard let weightLoading else { return "—" }
-
-        switch weightLoading.plates(for: exerciseLog.targetWeightKgSnapshot) {
-        case let .exact(perSidePlatesKg):
-            if perSidePlatesKg.isEmpty {
-                return "bar only"
-            }
-            return perSidePlatesKg
-                .map(Self.formatWeight)
-                .joined(separator: " + ")
-        case let .closest(belowKg, aboveKg):
-            let nearest = [belowKg, aboveKg]
-                .compactMap { $0 }
-                .min(by: { abs($0 - exerciseLog.targetWeightKgSnapshot) < abs($1 - exerciseLog.targetWeightKgSnapshot) })
-            guard let nearest else { return "—" }
-            return "closest: \(Self.formatWeight(nearest)) kg"
-        }
-    }
-
     private func rebuildDraftPlan() {
         guard let selectedProgramDay, let weightLoading else {
             draftPlan = nil
@@ -490,7 +470,7 @@ final class TodayViewModel {
         activeDraftSessionID = session.id
         reopenedDraftID = session.id
         selectedProgramDay = matchProgramDay(session.programDay, in: availableProgramDays)
-        draftPlan = DraftSessionPlan(session: session)
+        draftPlan = DraftSessionPlan(session: session, stalledCounts: stalledCountsByExerciseKey())
         activeDraftStartedAt = session.startedAt
         isProgramDayLocked = true
         programDayLockHint = makeProgramDayLockHint(for: session)
@@ -499,6 +479,17 @@ final class TodayViewModel {
         } else {
             finishWorkoutPreview = nil
         }
+    }
+
+    private func stalledCountsByExerciseKey() -> [String: Int] {
+        guard let modelContext,
+              let progressions = try? modelContext.fetch(FetchDescriptor<ExerciseProgression>()) else {
+            return [:]
+        }
+        return Dictionary(uniqueKeysWithValues: progressions.compactMap { progression in
+            guard let key = progression.exercise?.key else { return nil }
+            return (key, progression.stalledCount)
+        })
     }
 
     private func makeProgramDayLockHint(for session: WorkoutSession) -> String {

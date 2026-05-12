@@ -2,7 +2,6 @@ import SwiftUI
 
 struct TodayExerciseCard: View {
     let exerciseLog: DraftExerciseLog
-    let plateSuggestion: String
     let weightLoading: WeightLoading?
     let onTapSet: (UUID) -> Void
     let onEditWorkingWeight: (Double) -> Void
@@ -72,9 +71,34 @@ struct TodayExerciseCard: View {
                     .font(.title2.weight(.bold))
                     .foregroundStyle(LiftTheme.textPrimary)
 
-                Text("\(exerciseLog.targetSetsSnapshot) × \(exerciseLog.targetRepsSnapshot)")
-                    .font(.subheadline)
-                    .foregroundStyle(LiftTheme.textSecondary)
+                HStack(spacing: 8) {
+                    Text("\(exerciseLog.targetSetsSnapshot) × \(exerciseLog.targetRepsSnapshot)")
+                        .font(.subheadline)
+                        .foregroundStyle(LiftTheme.textSecondary)
+
+                    if exerciseLog.stalledCount > 0 {
+                        stalledBadge
+                    }
+                }
+
+                if let platesLine {
+                    Button {
+                        guard weightLoading != nil else { return }
+                        isShowingPlateCalculator = true
+                    } label: {
+                        HStack(spacing: 4) {
+                            Image(systemName: "rectangle.stack")
+                                .font(.caption2.weight(.semibold))
+                            Text(platesLine)
+                                .font(.caption.weight(.medium))
+                                .lineLimit(1)
+                        }
+                        .foregroundStyle(LiftTheme.accent)
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityLabel("Plates per side: \(platesLine). Tap for plate calculator.")
+                    .disabled(weightLoading == nil)
+                }
             }
 
             Spacer(minLength: 12)
@@ -101,6 +125,48 @@ struct TodayExerciseCard: View {
             .buttonStyle(.plain)
             .accessibilityLabel("Edit working weight, currently \(formattedWeight) kilograms")
         }
+    }
+
+    private var stalledBadge: some View {
+        let count = exerciseLog.stalledCount
+        return Text("Stalled ×\(count)")
+            .font(.caption2.weight(.bold))
+            .foregroundStyle(LiftTheme.warning)
+            .padding(.horizontal, 8)
+            .padding(.vertical, 3)
+            .background(LiftTheme.warning.opacity(0.18), in: Capsule())
+            .overlay(Capsule().strokeBorder(LiftTheme.warning.opacity(0.45), lineWidth: 1))
+            .accessibilityLabel("Stalled \(count) session\(count == 1 ? "" : "s")")
+    }
+
+    private var platesLine: String? {
+        guard let weightLoading else { return nil }
+        switch weightLoading.plates(for: exerciseLog.targetWeightKgSnapshot) {
+        case let .exact(perSidePlatesKg):
+            guard !perSidePlatesKg.isEmpty else { return nil }
+            return formatPlates(perSidePlatesKg)
+        case .closest:
+            return nil
+        }
+    }
+
+    private func formatPlates(_ plates: [Double]) -> String {
+        let counts = plates.reduce(into: [(Double, Int)]()) { acc, plate in
+            if let last = acc.last, last.0 == plate {
+                acc[acc.count - 1] = (plate, last.1 + 1)
+            } else {
+                acc.append((plate, 1))
+            }
+        }
+        return counts.map { plate, count in
+            "\(count)×\(formatPlateWeight(plate))"
+        }.joined(separator: " + ")
+    }
+
+    private func formatPlateWeight(_ weight: Double) -> String {
+        weight.formatted(
+            .number.precision(.fractionLength(weight.rounded(.down) == weight ? 0 : 2))
+        )
     }
 
     private var warmupSection: some View {
@@ -262,7 +328,6 @@ struct TodayExerciseCard: View {
     ScrollView {
         TodayExerciseCard(
             exerciseLog: draftPlan.exerciseLogs[0],
-            plateSuggestion: viewModel.plateSuggestion(for: draftPlan.exerciseLogs[0]),
             weightLoading: viewModel.weightLoading,
             onTapSet: { _ in },
             onEditWorkingWeight: { _ in },
