@@ -32,8 +32,14 @@ struct TodayView: View {
                                     onEditSetWeight: { setID, newWeight in
                                         perform { try viewModel.editWeight(forSet: setID, newWeightKg: newWeight) }
                                     },
+                                    onEditSetReps: { setID, newReps in
+                                        perform { try viewModel.editReps(forSet: setID, targetReps: newReps) }
+                                    },
                                     onDeleteSet: { setID in
                                         perform { try viewModel.deleteSet(setID) }
+                                    },
+                                    onAddWarmup: {
+                                        perform { try viewModel.addWarmupSet(toExerciseLogID: exerciseLog.id) }
                                     }
                                 )
                             }

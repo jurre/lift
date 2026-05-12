@@ -274,6 +274,57 @@ final class TodayViewModel {
         syncDraftPlan(session: session)
     }
 
+    func editReps(forSet setID: UUID, targetReps: Int) throws {
+        let displayedPlan = draftPlan
+        guard let session = try prepareDraftIfNeeded(),
+              let (loggedSet, _) = resolveSet(id: setID, in: session, displayedPlan: displayedPlan) else {
+            return
+        }
+
+        loggedSet.targetReps = max(1, targetReps)
+        try saveChanges()
+        syncDraftPlan(session: session)
+    }
+
+    func addWarmupSet(toExerciseLogID exerciseLogID: UUID) throws {
+        let displayedPlan = draftPlan
+        guard let modelContext,
+              let session = try prepareDraftIfNeeded(),
+              let exerciseLog = resolveExerciseLog(id: exerciseLogID, in: session, displayedPlan: displayedPlan),
+              let weightLoading else {
+            return
+        }
+
+        let workingWeight = exerciseLog.targetWeightKgSnapshot
+        let warmups = exerciseLog.sets.filter { $0.kind == .warmup }.sorted { $0.index < $1.index }
+
+        let newWeight: Double
+        let newReps: Int
+        if let last = warmups.last {
+            if let next = weightLoading.nextHigherLoadable(last.weightKg), next < workingWeight {
+                newWeight = next
+            } else {
+                newWeight = last.weightKg
+            }
+            newReps = 3
+        } else {
+            newWeight = weightLoading.barWeightKg
+            newReps = 5
+        }
+
+        let newSet = LoggedSet(
+            log: exerciseLog,
+            kind: .warmup,
+            index: warmups.count,
+            weightKg: newWeight,
+            targetReps: newReps
+        )
+        modelContext.insert(newSet)
+        exerciseLog.sets.append(newSet)
+        try saveChanges()
+        syncDraftPlan(session: session)
+    }
+
     func deleteSet(_ setID: UUID) throws {
         let displayedPlan = draftPlan
         guard let modelContext, let session = try prepareDraftIfNeeded(),

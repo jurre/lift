@@ -5,10 +5,26 @@ struct TodaySetTile: View {
     let set: DraftSet
     let onTap: () -> Void
     let onEditWeight: ((Double) -> Void)?
+    let onEditReps: ((Int) -> Void)?
     let onDelete: (() -> Void)?
 
     @State private var isShowingWeightEditor = false
+    @State private var isShowingWarmupEditor = false
     @State private var isShowingAdjustHint = false
+
+    init(
+        set: DraftSet,
+        onTap: @escaping () -> Void,
+        onEditWeight: ((Double) -> Void)? = nil,
+        onEditReps: ((Int) -> Void)? = nil,
+        onDelete: (() -> Void)? = nil
+    ) {
+        self.set = set
+        self.onTap = onTap
+        self.onEditWeight = onEditWeight
+        self.onEditReps = onEditReps
+        self.onDelete = onDelete
+    }
 
     var body: some View {
         Button(action: handleTap) {
@@ -43,12 +59,16 @@ struct TodaySetTile: View {
         }
         .buttonStyle(.plain)
         .contextMenu {
-            if set.kind == .working, onEditWeight != nil {
+            if set.kind == .warmup, onEditWeight != nil || onEditReps != nil {
+                Button("Edit warmup", systemImage: "pencil") {
+                    isShowingWarmupEditor = true
+                }
+            } else if set.kind == .working, onEditWeight != nil {
                 Button("Edit weight for this set", systemImage: "pencil") {
                     isShowingWeightEditor = true
                 }
             }
-            if set.kind == .working, let onDelete {
+            if let onDelete {
                 Button("Delete set", systemImage: "trash", role: .destructive, action: onDelete)
             }
         }
@@ -60,6 +80,20 @@ struct TodaySetTile: View {
                     onCommit: onEditWeight
                 )
             }
+        }
+        .sheet(isPresented: $isShowingWarmupEditor) {
+            WarmupSetEditorSheet(
+                initialWeightKg: set.weightKg,
+                initialReps: set.targetReps,
+                onCommit: { newWeight, newReps in
+                    if let onEditWeight, newWeight != set.weightKg {
+                        onEditWeight(newWeight)
+                    }
+                    if let onEditReps, newReps != set.targetReps {
+                        onEditReps(newReps)
+                    }
+                }
+            )
         }
         .task(id: hintTaskID) {
             guard shouldShowAdjustHint else {
@@ -244,6 +278,79 @@ struct WeightEditorSheet: View {
     }
 
     private func adjust(by delta: Double) {
+        let currentValue = Double(weightText.replacingOccurrences(of: ",", with: ".")) ?? initialWeightKg
+        let updated = max(0, currentValue + delta)
+        weightText = updated.formatted(.number.precision(.fractionLength(updated.rounded(.down) == updated ? 0 : 1)))
+    }
+}
+
+struct WarmupSetEditorSheet: View {
+    let initialWeightKg: Double
+    let initialReps: Int
+    let onCommit: (Double, Int) -> Void
+
+    @Environment(\.dismiss) private var dismiss
+    @State private var weightText: String
+    @State private var reps: Int
+
+    init(initialWeightKg: Double, initialReps: Int, onCommit: @escaping (Double, Int) -> Void) {
+        self.initialWeightKg = initialWeightKg
+        self.initialReps = initialReps
+        self.onCommit = onCommit
+        _weightText = State(
+            initialValue: initialWeightKg.formatted(
+                .number.precision(.fractionLength(initialWeightKg.rounded(.down) == initialWeightKg ? 0 : 1))
+            )
+        )
+        _reps = State(initialValue: initialReps)
+    }
+
+    var body: some View {
+        NavigationStack {
+            Form {
+                Section("Weight") {
+                    TextField("Weight (kg)", text: $weightText)
+                        .keyboardType(.decimalPad)
+
+                    HStack {
+                        Button("−2.5") {
+                            adjustWeight(by: -2.5)
+                        }
+                        Spacer()
+                        Button("+2.5") {
+                            adjustWeight(by: 2.5)
+                        }
+                    }
+                }
+
+                Section("Reps") {
+                    Stepper(value: $reps, in: 1...20) {
+                        Text("\(reps) reps")
+                            .monospacedDigit()
+                    }
+                }
+            }
+            .navigationTitle("Edit warmup")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Cancel") {
+                        dismiss()
+                    }
+                }
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Save") {
+                        guard let value = Double(weightText.replacingOccurrences(of: ",", with: ".")) else { return }
+                        onCommit(value, reps)
+                        dismiss()
+                    }
+                }
+            }
+        }
+        .presentationDetents([.medium])
+    }
+
+    private func adjustWeight(by delta: Double) {
         let currentValue = Double(weightText.replacingOccurrences(of: ",", with: ".")) ?? initialWeightKg
         let updated = max(0, currentValue + delta)
         weightText = updated.formatted(.number.precision(.fractionLength(updated.rounded(.down) == updated ? 0 : 1)))

@@ -7,7 +7,9 @@ struct TodayExerciseCard: View {
     let onTapSet: (UUID) -> Void
     let onEditWorkingWeight: (Double) -> Void
     let onEditSetWeight: (UUID, Double) -> Void
+    let onEditSetReps: (UUID, Int) -> Void
     let onDeleteSet: (UUID) -> Void
+    let onAddWarmup: () -> Void
 
     @Environment(\.restTimer) private var restTimer
     @State private var isShowingWarmups = false
@@ -64,22 +66,43 @@ struct TodayExerciseCard: View {
                 }
             }
 
-            if !warmupSets.isEmpty {
-                DisclosureGroup(isExpanded: warmupExpansionBinding) {
-                    HStack(alignment: .top, spacing: 8) {
-                        ForEach(warmupSets, id: \.id) { set in
-                            TodaySetTile(
-                                set: set,
-                                onTap: { onTapSet(set.id) },
-                                onEditWeight: nil,
-                                onDelete: nil
-                            )
+            DisclosureGroup(isExpanded: warmupExpansionBinding) {
+                VStack(alignment: .leading, spacing: 12) {
+                    if warmupSets.isEmpty {
+                        Text("No warmup sets")
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
+                            .padding(.top, 8)
+                    } else {
+                        ScrollView(.horizontal, showsIndicators: false) {
+                            HStack(alignment: .top, spacing: 8) {
+                                ForEach(warmupSets, id: \.id) { set in
+                                    TodaySetTile(
+                                        set: set,
+                                        onTap: { onTapSet(set.id) },
+                                        onEditWeight: { onEditSetWeight(set.id, $0) },
+                                        onEditReps: { onEditSetReps(set.id, $0) },
+                                        onDelete: { onDeleteSet(set.id) }
+                                    )
+                                    .frame(width: 86)
+                                }
+                            }
+                            .padding(.top, 8)
+                            .padding(.horizontal, 1)
                         }
                     }
-                    .padding(.top, 8)
-                } label: {
-                    sectionLabel(title: "Warmup", count: warmupSets.count)
+
+                    Button {
+                        onAddWarmup()
+                    } label: {
+                        Label("Add warmup", systemImage: "plus.circle")
+                            .font(.subheadline.weight(.semibold))
+                    }
+                    .buttonStyle(.bordered)
+                    .controlSize(.small)
                 }
+            } label: {
+                sectionLabel(title: "Warmup", count: warmupSets.count)
             }
 
             VStack(alignment: .leading, spacing: 12) {
@@ -303,7 +326,9 @@ private struct RestTimerInlineView: View {
             onTapSet: { _ in },
             onEditWorkingWeight: { _ in },
             onEditSetWeight: { _, _ in },
-            onDeleteSet: { _ in }
+            onEditSetReps: { _, _ in },
+            onDeleteSet: { _ in },
+            onAddWarmup: {}
         )
         .padding()
     }

@@ -125,6 +125,119 @@ struct TodayViewModelSetTapTests {
         #expect(try fetchLoggedSet(id: setID, from: fixture.context) == nil)
     }
 
+    @Test("addWarmupSet appends a bar warmup at 5 reps when no warmups exist")
+    func addWarmupSetAddsBarWhenEmpty() throws {
+        let fixture = try makeFixture(squatWeight: 60)
+        let firstExerciseLog = try #require(fixture.viewModel.draftPlan?.exerciseLogs.first)
+        let warmupSetIDs = firstExerciseLog.sets.filter { $0.kind == .warmup }.map(\.id)
+        for warmupID in warmupSetIDs {
+            try fixture.viewModel.deleteSet(warmupID)
+        }
+
+        try fixture.viewModel.addWarmupSet(toExerciseLogID: firstExerciseLog.id)
+
+        let exerciseLog = try #require(try fetchExerciseLog(id: firstExerciseLog.id, from: fixture.context))
+        let warmups = exerciseLog.sets.filter { $0.kind == .warmup }.sorted { $0.index < $1.index }
+        try #require(warmups.count == 1)
+        #expect(warmups[0].weightKg == 20)
+        #expect(warmups[0].targetReps == 5)
+        #expect(warmups[0].index == 0)
+        #expect(warmups[0].actualReps == nil)
+    }
+
+    @Test("addWarmupSet appends the next loadable above the last warmup at 3 reps")
+    func addWarmupSetAddsNextLoadable() throws {
+        let fixture = try makeFixture(squatWeight: 60)
+        let firstExerciseLog = try #require(fixture.viewModel.draftPlan?.exerciseLogs.first)
+        let priorWarmupCount = firstExerciseLog.sets.filter { $0.kind == .warmup }.count
+        let priorLastWarmup = try #require(firstExerciseLog.sets.filter { $0.kind == .warmup }.sorted { $0.index < $1.index }.last)
+        let priorLastWeight = priorLastWarmup.weightKg
+
+        try fixture.viewModel.addWarmupSet(toExerciseLogID: firstExerciseLog.id)
+
+        let exerciseLog = try #require(try fetchExerciseLog(id: firstExerciseLog.id, from: fixture.context))
+        let warmups = exerciseLog.sets.filter { $0.kind == .warmup }.sorted { $0.index < $1.index }
+        #expect(warmups.count == priorWarmupCount + 1)
+
+        let expectedWeight = fixture.weightLoading.nextHigherLoadable(priorLastWeight) ?? priorLastWeight
+        let appended = try #require(warmups.last)
+        #expect(appended.weightKg == expectedWeight)
+        #expect(appended.weightKg < 60)
+        #expect(appended.targetReps == 3)
+        #expect(appended.index == warmups.count - 1)
+    }
+
+    @Test("addWarmupSet duplicates the last warmup when no loadable fits before working weight")
+    func addWarmupSetDuplicatesLastWarmupWhenAtCeiling() throws {
+        let fixture = try makeFixture(squatWeight: 22.5)
+        let firstExerciseLog = try #require(fixture.viewModel.draftPlan?.exerciseLogs.first)
+        let priorWarmups = firstExerciseLog.sets.filter { $0.kind == .warmup }.sorted { $0.index < $1.index }
+        let priorLast = try #require(priorWarmups.last)
+        let priorWeight = priorLast.weightKg
+
+        try fixture.viewModel.addWarmupSet(toExerciseLogID: firstExerciseLog.id)
+
+        let exerciseLog = try #require(try fetchExerciseLog(id: firstExerciseLog.id, from: fixture.context))
+        let warmups = exerciseLog.sets.filter { $0.kind == .warmup }.sorted { $0.index < $1.index }
+        #expect(warmups.count == priorWarmups.count + 1)
+        let appended = try #require(warmups.last)
+        #expect(appended.weightKg == priorWeight)
+        #expect(appended.targetReps == 3)
+    }
+
+    @Test("addWarmupSet generates a unique stable identifier")
+    func addWarmupSetGeneratesUniqueID() throws {
+        let fixture = try makeFixture(squatWeight: 60)
+        let firstExerciseLog = try #require(fixture.viewModel.draftPlan?.exerciseLogs.first)
+        let priorIDs = Set(firstExerciseLog.sets.map(\.id))
+
+        try fixture.viewModel.addWarmupSet(toExerciseLogID: firstExerciseLog.id)
+
+        let exerciseLog = try #require(try fetchExerciseLog(id: firstExerciseLog.id, from: fixture.context))
+        let newIDs = exerciseLog.sets.map(\.id).filter { !priorIDs.contains($0) }
+        #expect(newIDs.count == 1)
+    }
+
+    @Test("editReps updates a set's targetReps and persists the change")
+    func editRepsUpdatesTargetReps() throws {
+        let fixture = try makeFixture(squatWeight: 60)
+        let warmupSet = try #require(fixture.viewModel.draftPlan?.exerciseLogs.first?.sets.first(where: { $0.kind == .warmup }))
+
+        try fixture.viewModel.editReps(forSet: warmupSet.id, targetReps: 8)
+
+        let persisted = try #require(try fetchLoggedSet(id: warmupSet.id, from: fixture.context))
+        #expect(persisted.targetReps == 8)
+    }
+
+    @Test("editReps clamps target reps to at least one")
+    func editRepsClampsToOne() throws {
+        let fixture = try makeFixture(squatWeight: 60)
+        let setID = try #require(fixture.viewModel.draftPlan?.exerciseLogs.first?.sets.first).id
+
+        try fixture.viewModel.editReps(forSet: setID, targetReps: 0)
+
+        let persisted = try #require(try fetchLoggedSet(id: setID, from: fixture.context))
+        #expect(persisted.targetReps == 1)
+    }
+
+    @Test("deleteSet removes a warmup and reindexes the remaining warmups")
+    func deleteSetReindexesWarmups() throws {
+        let fixture = try makeFixture(squatWeight: 60)
+        let firstExerciseLog = try #require(fixture.viewModel.draftPlan?.exerciseLogs.first)
+        let warmups = firstExerciseLog.sets.filter { $0.kind == .warmup }.sorted { $0.index < $1.index }
+        try #require(warmups.count >= 2)
+        let secondWarmupID = warmups[1].id
+
+        try fixture.viewModel.deleteSet(secondWarmupID)
+
+        let exerciseLog = try #require(try fetchExerciseLog(id: firstExerciseLog.id, from: fixture.context))
+        let remaining = exerciseLog.sets.filter { $0.kind == .warmup }.sorted { $0.index < $1.index }
+        #expect(remaining.count == warmups.count - 1)
+        for (index, set) in remaining.enumerated() {
+            #expect(set.index == index)
+        }
+    }
+
     private func makeFixture(
         squatWeight: Double = 20,
         restTimer: some RestTimerStarting = RecordingRestTimer()
