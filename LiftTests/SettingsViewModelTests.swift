@@ -35,6 +35,19 @@ struct SettingsViewModelGatingTests {
             try viewModel.editCurrentWeight(progression: progression, newWeightKg: 100)
         }
     }
+
+    @Test("editing increment throws when a draft exists")
+    func editIncrementThrowsDuringDraft() throws {
+        let fixture = try SettingsFixture()
+        try fixture.makeDraftSession()
+        let viewModel = SettingsViewModel(modelContext: fixture.context)
+        viewModel.refresh()
+
+        let progression = try #require(viewModel.progressions.first(where: { $0.exercise?.key == "squat" }))
+        #expect(throws: SettingsViewModelError.lockedDuringActiveDraft) {
+            try viewModel.editIncrement(progression: progression, kg: 5.0)
+        }
+    }
 }
 
 @MainActor

@@ -89,6 +89,7 @@ struct ExerciseSettingsView: View {
                         Text("\(formatted(progression.incrementKg)) kg").foregroundStyle(.secondary)
                     }
                 }
+                .disabled(viewModel.hasActiveDraft)
             }
 
             Section("Rest timer") {

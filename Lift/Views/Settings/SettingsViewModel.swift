@@ -127,14 +127,17 @@ final class SettingsViewModel {
         refresh()
     }
 
-    // MARK: - Future-only edits (always allowed)
+    // MARK: - Gated metadata edits (locked while a draft is active)
 
     func editIncrement(progression: ExerciseProgression, kg: Double) throws {
         guard let modelContext else { throw SettingsViewModelError.missingModelContext }
+        try ensureNoActiveDraft()
         progression.incrementKg = max(0.25, kg)
         try modelContext.save()
         refresh()
     }
+
+    // MARK: - Future-only edits (always allowed)
 
     func editRestSeconds(progression: ExerciseProgression, seconds: Int) throws {
         guard let modelContext else { throw SettingsViewModelError.missingModelContext }
