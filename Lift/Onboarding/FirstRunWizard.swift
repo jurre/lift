@@ -10,11 +10,10 @@ private enum OnboardingStep: Hashable {
 struct FirstRunWizard: View {
     @Bindable var persistenceService: PersistenceService
     @State private var path: [OnboardingStep] = []
-    @State private var displayName = ""
 
     var body: some View {
         NavigationStack(path: $path) {
-            WelcomeStep(displayName: $displayName) {
+            WelcomeStep {
                 path.append(.equipment)
             }
             .navigationDestination(for: OnboardingStep.self) { step in
@@ -28,7 +27,7 @@ struct FirstRunWizard: View {
                         path.append(.done)
                     }
                 case .done:
-                    DoneStep(displayName: displayName, persistenceService: persistenceService)
+                    DoneStep(persistenceService: persistenceService)
                 }
             }
         }
@@ -36,15 +35,14 @@ struct FirstRunWizard: View {
 }
 
 private struct WelcomeStep: View {
-    @Binding var displayName: String
     let onNext: () -> Void
 
     var body: some View {
         Form {
             Section("Welcome") {
                 Text("Lift keeps a simple A/B strength program ready to log, with your next weights and setup saved on-device.")
-                TextField("Display name (optional)", text: $displayName)
-                    .textInputAutocapitalization(.words)
+                Text("On the next screens you'll set your bar, plates, and starting weights. You can change them later in Settings.")
+                    .foregroundStyle(.secondary)
             }
         }
         .navigationTitle("Welcome")
@@ -100,12 +98,13 @@ private struct PlateInventoryRow: View {
     let onDelete: () -> Void
 
     var body: some View {
-        HStack {
+        HStack(spacing: 12) {
             TextField("Weight", value: Binding(
                 get: { item.weightKg },
                 set: { item.weightKg = max(0, $0) }
             ), format: .number)
             .keyboardType(.decimalPad)
+            .frame(width: 64)
 
             Text("kg")
                 .foregroundStyle(.secondary)
@@ -116,13 +115,16 @@ private struct PlateInventoryRow: View {
                 get: { item.countTotal },
                 set: { item.countTotal = max(0, $0) }
             ), in: 0 ... 20) {
-                Text("Count: \(item.countTotal)")
+                Text("× \(item.countTotal)")
+                    .monospacedDigit()
+                    .foregroundStyle(.secondary)
             }
-            .frame(maxWidth: 160)
+            .fixedSize()
 
             Button(role: .destructive, action: onDelete) {
                 Image(systemName: "trash")
             }
+            .buttonStyle(.borderless)
         }
     }
 }
@@ -131,22 +133,39 @@ private struct StartingWeightsStep: View {
     @Bindable var persistenceService: PersistenceService
     let onNext: () -> Void
 
+    @State private var editing: ExerciseProgression?
+
     var body: some View {
         Form {
-            Section("Starting weights") {
+            Section {
                 ForEach(persistenceService.exerciseProgressions, id: \.persistentModelID) { progression in
-                    Stepper(value: Binding(
-                        get: { progression.currentWeightKg },
-                        set: { progression.currentWeightKg = max(0, $0) }
-                    ), in: 0 ... 500, step: progression.incrementKg) {
-                        VStack(alignment: .leading) {
-                            Text(progression.exercise?.name ?? "Exercise")
+                    Button {
+                        editing = progression
+                    } label: {
+                        HStack {
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text(progression.exercise?.name ?? "Exercise")
+                                    .foregroundStyle(.primary)
+                                Text("Tap to set weight")
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+                            }
+                            Spacer()
                             Text("\(progression.currentWeightKg.formatted(.number.precision(.fractionLength(0 ... 2)))) kg")
-                                .font(.caption)
-                                .foregroundStyle(.secondary)
+                                .font(.body.weight(.semibold))
+                                .monospacedDigit()
+                                .foregroundStyle(.primary)
+                            Image(systemName: "chevron.right")
+                                .font(.caption.weight(.semibold))
+                                .foregroundStyle(.tertiary)
                         }
                     }
+                    .buttonStyle(.plain)
                 }
+            } header: {
+                Text("Starting weights")
+            } footer: {
+                Text("Tap a row to enter the weight directly. We'll snap it to your loadable plates.")
             }
         }
         .navigationTitle("Starting weights")
@@ -155,33 +174,43 @@ private struct StartingWeightsStep: View {
                 Button("Next", action: onNext)
             }
         }
+        .sheet(item: $editing) { progression in
+            WeightEditorSheet(
+                title: progression.exercise?.name ?? "Starting weight",
+                initialWeightKg: progression.currentWeightKg,
+                onCommit: { newWeight in
+                    let loading = currentWeightLoading()
+                    let snapped = loading?.nearestLoadable(newWeight) ?? max(0, newWeight)
+                    progression.currentWeightKg = snapped
+                },
+                weightLoading: currentWeightLoading()
+            )
+        }
+    }
+
+    private func currentWeightLoading() -> WeightLoading? {
+        guard let user = persistenceService.user else { return nil }
+        return WeightLoading(barWeightKg: user.barWeightKg, inventory: user.orderedPlates)
     }
 }
 
 private struct DoneStep: View {
-    let displayName: String
     @Bindable var persistenceService: PersistenceService
 
     var body: some View {
         Form {
             Section("Ready to lift") {
                 Text("You're set up. You can change your bar, plates, and starting weights later in settings.")
-                Text("Name: \(resolvedDisplayName)")
                 Text("Exercises: \(persistenceService.exerciseProgressions.count)")
             }
 
             Section {
                 Button("Finish") {
-                    try? persistenceService.finishOnboarding(displayName: displayName)
+                    try? persistenceService.finishOnboarding(displayName: "")
                 }
                 .frame(maxWidth: .infinity, alignment: .center)
             }
         }
         .navigationTitle("Done")
-    }
-
-    private var resolvedDisplayName: String {
-        let trimmed = displayName.trimmingCharacters(in: .whitespacesAndNewlines)
-        return trimmed.isEmpty ? "Lifter" : trimmed
     }
 }

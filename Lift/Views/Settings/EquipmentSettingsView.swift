@@ -90,7 +90,7 @@ private struct EquipmentPlateRow: View {
     let onDelete: () -> Void
 
     var body: some View {
-        HStack {
+        HStack(spacing: 12) {
             TextField("Weight", value: Binding(
                 get: { item.weightKg },
                 set: { newValue in
@@ -99,7 +99,7 @@ private struct EquipmentPlateRow: View {
                 }
             ), format: .number)
             .keyboardType(.decimalPad)
-            .frame(maxWidth: 80)
+            .frame(width: 64)
 
             Text("kg").foregroundStyle(.secondary)
 
@@ -113,8 +113,10 @@ private struct EquipmentPlateRow: View {
                 }
             ), in: 0 ... 20) {
                 Text("× \(item.countTotal)")
+                    .monospacedDigit()
+                    .foregroundStyle(.secondary)
             }
-            .frame(maxWidth: 130)
+            .fixedSize()
 
             Button(role: .destructive, action: onDelete) {
                 Image(systemName: "trash")
