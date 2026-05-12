@@ -10,6 +10,8 @@ struct TodayExerciseCard: View {
 
     @Environment(\.restTimer) private var restTimer
     @State private var isShowingWarmups = false
+    @State private var hasInitializedWarmupExpansion = false
+    @State private var hasUserToggledWarmupExpansion = false
     @State private var isShowingWorkingWeightEditor = false
 
     var body: some View {
@@ -52,10 +54,10 @@ struct TodayExerciseCard: View {
             }
 
             if !warmupSets.isEmpty {
-                DisclosureGroup(isExpanded: $isShowingWarmups) {
-                    VStack(alignment: .leading, spacing: 8) {
+                DisclosureGroup(isExpanded: warmupExpansionBinding) {
+                    HStack(alignment: .top, spacing: 8) {
                         ForEach(warmupSets, id: \.id) { set in
-                            TodaySetRow(
+                            TodaySetTile(
                                 set: set,
                                 onTap: { onTapSet(set.id) },
                                 onEditWeight: nil,
@@ -69,21 +71,24 @@ struct TodayExerciseCard: View {
                 }
             }
 
-            VStack(alignment: .leading, spacing: 10) {
+            VStack(alignment: .leading, spacing: 12) {
                 sectionLabel(title: "Working sets", count: workingSets.count)
-                ForEach(workingSets, id: \.id) { set in
-                    VStack(alignment: .leading, spacing: 10) {
-                        TodaySetRow(
+
+                HStack(alignment: .top, spacing: 8) {
+                    ForEach(workingSets, id: \.id) { set in
+                        TodaySetTile(
                             set: set,
                             onTap: { onTapSet(set.id) },
                             onEditWeight: { onEditSetWeight(set.id, $0) },
                             onDelete: { onDeleteSet(set.id) }
                         )
-
-                        if let restTimer, restTimer.active?.setID == set.id {
-                            RestTimerInlineView(restTimer: restTimer, setID: set.id)
-                        }
                     }
+                }
+
+                if let restTimer,
+                   let activeRest = restTimer.active,
+                   workingSets.contains(where: { $0.id == activeRest.setID }) {
+                    RestTimerInlineView(restTimer: restTimer, setID: activeRest.setID)
                 }
             }
         }
@@ -96,6 +101,17 @@ struct TodayExerciseCard: View {
                 onCommit: onEditWorkingWeight
             )
         }
+        .onAppear {
+            guard !hasInitializedWarmupExpansion else { return }
+            hasInitializedWarmupExpansion = true
+            isShowingWarmups = !warmupSets.isEmpty && !allWarmupsComplete
+        }
+        .onChange(of: allWarmupsComplete) { _, isComplete in
+            guard isComplete, !hasUserToggledWarmupExpansion, isShowingWarmups else { return }
+            withAnimation(.easeInOut) {
+                isShowingWarmups = false
+            }
+        }
     }
 
     private var warmupSets: [DraftSet] {
@@ -104,6 +120,23 @@ struct TodayExerciseCard: View {
 
     private var workingSets: [DraftSet] {
         exerciseLog.sets.filter { $0.kind == .working }
+    }
+
+    private var allWarmupsComplete: Bool {
+        guard !warmupSets.isEmpty else { return false }
+        return warmupSets.allSatisfy { set in
+            SetTapStateMachine.state(for: set.actualReps, targetReps: set.targetReps) == .complete
+        }
+    }
+
+    private var warmupExpansionBinding: Binding<Bool> {
+        Binding(
+            get: { isShowingWarmups },
+            set: { newValue in
+                hasUserToggledWarmupExpansion = true
+                isShowingWarmups = newValue
+            }
+        )
     }
 
     private var formattedWeight: String {
