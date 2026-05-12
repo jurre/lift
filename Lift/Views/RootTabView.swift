@@ -58,16 +58,20 @@ private struct RestTimerAccessoryModifier: ViewModifier {
     let restTimer: RestTimerService?
 
     func body(content: Content) -> some View {
+        let activeTimer: RestTimerService? = (restTimer?.active != nil) ? restTimer : nil
+
         if #available(iOS 26.0, *) {
-            content.tabViewBottomAccessory {
-                if let restTimer, restTimer.active != nil {
-                    RestTimerOverlay(restTimer: restTimer)
+            if let activeTimer {
+                content.tabViewBottomAccessory {
+                    RestTimerOverlay(restTimer: activeTimer)
                 }
+            } else {
+                content
             }
         } else {
             content.safeAreaInset(edge: .bottom) {
-                if let restTimer, restTimer.active != nil {
-                    RestTimerOverlay(restTimer: restTimer)
+                if let activeTimer {
+                    RestTimerOverlay(restTimer: activeTimer)
                         .padding(.horizontal, 20)
                         .padding(.bottom, 8)
                 }
