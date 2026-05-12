@@ -11,14 +11,10 @@ struct RootTabView: View {
                     Label("Today", systemImage: "figure.strengthtraining.traditional")
                 }
 
-            PlaceholderTabView(
-                title: "History",
-                message: "No completed workouts yet.",
-                systemImage: "clock.arrow.circlepath"
-            )
-            .tabItem {
-                Label("History", systemImage: "clock.arrow.circlepath")
-            }
+            HistoryView()
+                .tabItem {
+                    Label("History", systemImage: "clock.arrow.circlepath")
+                }
 
             PlaceholderTabView(
                 title: "Settings",
