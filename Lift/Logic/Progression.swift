@@ -5,6 +5,18 @@ struct WorkingSetResult: Sendable {
     let actualReps: Int
 }
 
+/// Working-set attempt where `actualReps == nil` means the set was never logged.
+/// Used by history/edit code that needs to reason about completion in addition to success.
+struct WorkingSetAttempt: Equatable, Sendable {
+    let targetReps: Int
+    let actualReps: Int?
+
+    init(targetReps: Int, actualReps: Int?) {
+        self.targetReps = targetReps
+        self.actualReps = actualReps
+    }
+}
+
 enum ProgressionOutcome: Equatable, Sendable {
     case advanced(newWeightKg: Double)
     case stalled
@@ -64,5 +76,15 @@ enum Progression {
         weightLoading: WeightLoading
     ) -> Double {
         max(weightLoading.barWeightKg, weightLoading.nearestLoadable(currentWeightKg * 0.9))
+    }
+
+    /// Returns true iff every working set was logged AND hit its target. The empty list is treated
+    /// as failure so deleting all working sets in History never silently flips an exercise to success.
+    static func didExerciseSucceed(workingSets: [WorkingSetAttempt]) -> Bool {
+        guard !workingSets.isEmpty else { return false }
+        return workingSets.allSatisfy { attempt in
+            guard let actual = attempt.actualReps else { return false }
+            return actual >= attempt.targetReps
+        }
     }
 }
