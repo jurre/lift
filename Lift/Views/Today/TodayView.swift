@@ -83,6 +83,14 @@ struct TodayView: View {
                     .padding(.bottom, 8)
                 }
             }
+            .safeAreaInset(edge: .bottom) {
+                if let restTimer, let draftPlan = viewModel.draftPlan {
+                    RestTimerOverlay(
+                        restTimer: restTimer,
+                        exerciseLogs: draftPlan.exerciseLogs
+                    )
+                }
+            }
             .task(id: undoCoordinator.currentSnackbar?.id) {
                 guard undoCoordinator.currentSnackbar != nil else { return }
                 try? await Task.sleep(for: .seconds(4))

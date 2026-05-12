@@ -16,6 +16,7 @@
 		2065B1EF4D721D093BFCD799 /* HistorySectionBuilderTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 467EFDBB826FE38F6F5F199D /* HistorySectionBuilderTests.swift */; };
 		2543ECFA7A45B445EC621BE4 /* LiftUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E31664A376C2F2346FB1E9BF /* LiftUITests.swift */; };
 		257390548A5ED6A08D51CDA9 /* ExerciseLogSummary.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1CCCA45B223AEC19287E266 /* ExerciseLogSummary.swift */; };
+		27749C2CD4321EB3E694A341 /* RestTimerOverlay.swift in Sources */ = {isa = PBXBuildFile; fileRef = BA3200F8F9E226969678C66E /* RestTimerOverlay.swift */; };
 		27C040D7C53E94DC0DC0E553 /* DraftSessionFinalizeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B914C5E795B45D6724589EE1 /* DraftSessionFinalizeTests.swift */; };
 		28B5A4973A39E310EED3F72B /* DraftSessionFactoryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D6CF4E83A2900BED7CCCAD24 /* DraftSessionFactoryTests.swift */; };
 		28D4213FEF024A9879BC20AD /* ProgressionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CB8A6FC2E056A981B33D46B1 /* ProgressionTests.swift */; };
@@ -138,6 +139,7 @@
 		B4298D96C4EEA93C6A209BD5 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		B709719D731AE2F68175EDD9 /* DraftReopenCoordinatorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DraftReopenCoordinatorTests.swift; sourceTree = "<group>"; };
 		B914C5E795B45D6724589EE1 /* DraftSessionFinalizeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DraftSessionFinalizeTests.swift; sourceTree = "<group>"; };
+		BA3200F8F9E226969678C66E /* RestTimerOverlay.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RestTimerOverlay.swift; sourceTree = "<group>"; };
 		BC38F9ABE3F984EDCCC5927B /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		BDDE3271456C3F548F9FCC8B /* PreviewSupport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreviewSupport.swift; sourceTree = "<group>"; };
 		BDEEE82375C25C28FFC4DA98 /* UndoCoordinatorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UndoCoordinatorTests.swift; sourceTree = "<group>"; };
@@ -168,6 +170,7 @@
 			isa = PBXGroup;
 			children = (
 				00EDFE79ED1560BE3F4E03D6 /* PlateCalculatorSheet.swift */,
+				BA3200F8F9E226969678C66E /* RestTimerOverlay.swift */,
 				225ED958B3478D6184903C1F /* TodayExerciseCard.swift */,
 				BEA3AC2295CDE728CF0459A7 /* TodaySetTile.swift */,
 				D76203446BD19737B6045B12 /* TodayView.swift */,
@@ -503,6 +506,7 @@
 				E813D61159D38DE87F6D3DBC /* PreviewSupport.swift in Sources */,
 				5F6EDBB37C5BF5CA5C313043 /* ProgramModels.swift in Sources */,
 				47EF476BD570186ED5492D45 /* Progression.swift in Sources */,
+				27749C2CD4321EB3E694A341 /* RestTimerOverlay.swift in Sources */,
 				AF470BCC2D9F0303C389B60E /* RestTimerService.swift in Sources */,
 				F9EE758C6E1D704BDD3A18C0 /* RootTabView.swift in Sources */,
 				E2052C8DEC46FEB64391ED03 /* SessionDetailView.swift in Sources */,
