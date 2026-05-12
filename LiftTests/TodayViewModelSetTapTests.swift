@@ -94,17 +94,51 @@ struct TodayViewModelSetTapTests {
         #expect(persisted.completedAt == tapTime)
     }
 
-    @Test("warmup completions do not start a rest timer")
-    func warmupsDoNotStartRest() async throws {
+    @Test("intermediate warmup completions do not start a rest timer")
+    func intermediateWarmupsDoNotStartRest() async throws {
         let restTimer = RecordingRestTimer()
         let fixture = try makeFixture(restTimer: restTimer)
-        let warmupSetID = try #require(
-            fixture.viewModel.draftPlan?.exerciseLogs.first?.sets.first(where: { $0.kind == .warmup })
-        ).id
+        let exerciseLog = try #require(fixture.viewModel.draftPlan?.exerciseLogs.first)
 
-        try await fixture.viewModel.tapSet(warmupSetID)
+        // Ensure there are at least two warmups so we can complete an intermediate one
+        // without finishing the warmup phase.
+        while (fixture.viewModel.draftPlan?.exerciseLogs.first?.sets.filter { $0.kind == .warmup }.count ?? 0) < 2 {
+            try fixture.viewModel.addWarmupSet(toExerciseLogID: exerciseLog.id)
+        }
+
+        let warmupSets = try #require(
+            fixture.viewModel.draftPlan?.exerciseLogs.first?.sets
+                .filter { $0.kind == .warmup }
+                .sorted { $0.index < $1.index }
+        )
+        try #require(warmupSets.count >= 2)
+
+        try await fixture.viewModel.tapSet(warmupSets[0].id)
 
         #expect(restTimer.startedRests.isEmpty)
+    }
+
+    @Test("completing the final warmup starts a rest timer before the working sets")
+    func lastWarmupCompletionStartsRest() async throws {
+        let restTimer = RecordingRestTimer()
+        let fixture = try makeFixture(restTimer: restTimer)
+        let warmupSets = try #require(
+            fixture.viewModel.draftPlan?.exerciseLogs.first?.sets
+                .filter { $0.kind == .warmup }
+                .sorted { $0.index < $1.index }
+        )
+        try #require(!warmupSets.isEmpty, "fixture should have warmups to complete")
+        let exerciseLog = try #require(fixture.viewModel.draftPlan?.exerciseLogs.first)
+
+        for warmup in warmupSets {
+            try await fixture.viewModel.tapSet(warmup.id)
+        }
+
+        let request = try #require(restTimer.startedRests.last)
+        #expect(request.exerciseLogID == exerciseLog.id)
+        #expect(request.setID == warmupSets.last?.id)
+        #expect(request.durationSeconds == 180)
+        #expect(restTimer.startedRests.count == 1, "only the final warmup should kick off a rest")
     }
 
     @Test("editWeight updates pending sets, preserves completed sets, and refreshes pending warmups")

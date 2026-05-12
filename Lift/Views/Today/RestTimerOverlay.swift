@@ -56,23 +56,23 @@ struct RestTimerOverlay: View {
             let remaining = max(restTimer.remaining(now: now) ?? 0, 0)
             let progress = Double(remaining) / Double(max(activeRest.durationSeconds, 1))
 
-            VStack(alignment: .leading, spacing: 10) {
-                HStack(alignment: .center, spacing: 12) {
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text(activeRest.exerciseName.uppercased())
-                            .font(.caption2.weight(.semibold))
-                            .foregroundStyle(LiftTheme.textSecondary)
-                            .accessibilityHidden(true)
+            VStack(alignment: .leading, spacing: 6) {
+                HStack(alignment: .firstTextBaseline, spacing: 8) {
+                    Text(formatted(remaining))
+                        .font(.title3.weight(.bold))
+                        .monospacedDigit()
+                        .foregroundStyle(LiftTheme.textPrimary)
+                        .accessibilityLabel("Rest timer for \(activeRest.exerciseName)")
+                        .accessibilityValue("\(remaining) seconds remaining")
 
-                        Text(formatted(remaining))
-                            .font(.title2.weight(.bold))
-                            .monospacedDigit()
-                            .foregroundStyle(LiftTheme.textPrimary)
-                            .accessibilityLabel("Rest timer for \(activeRest.exerciseName)")
-                            .accessibilityValue("\(remaining) seconds remaining")
-                    }
+                    Text(activeRest.exerciseName.uppercased())
+                        .font(.caption.weight(.semibold))
+                        .foregroundStyle(LiftTheme.textSecondary)
+                        .lineLimit(1)
+                        .truncationMode(.tail)
+                        .accessibilityHidden(true)
 
-                    Spacer(minLength: 12)
+                    Spacer(minLength: 8)
 
                     Button("Skip") {
                         Task { await restTimer.skip() }
@@ -94,7 +94,7 @@ struct RestTimerOverlay: View {
                     .accessibilityHidden(true)
             }
             .padding(.horizontal, 16)
-            .padding(.vertical, 10)
+            .padding(.vertical, 6)
         }
     }
 

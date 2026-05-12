@@ -257,9 +257,7 @@ final class TodayViewModel {
         let previousReps = loggedSet.actualReps
         apply(transition: result.transition, to: loggedSet)
 
-        if loggedSet.kind == .working,
-           currentState == .pending,
-           result.newState == .complete {
+        if shouldStartRest(after: loggedSet, in: exerciseLog, currentState: currentState, newState: result.newState) {
             await restTimer.start(
                 exerciseLogID: exerciseLog.id,
                 exerciseName: exerciseLog.exerciseNameSnapshot,
@@ -280,7 +278,23 @@ final class TodayViewModel {
 
         try saveChanges()
         syncDraftPlan(session: session)
-        return loggedSet.kind == .working && currentState == .pending && result.newState == .complete
+        return shouldStartRest(after: loggedSet, in: exerciseLog, currentState: currentState, newState: result.newState)
+    }
+
+    private func shouldStartRest(
+        after loggedSet: LoggedSet,
+        in exerciseLog: ExerciseLog,
+        currentState: SetCellState,
+        newState: SetCellState
+    ) -> Bool {
+        guard currentState == .pending, newState == .complete else { return false }
+        switch loggedSet.kind {
+        case .working:
+            return true
+        case .warmup:
+            let warmups = exerciseLog.sets.filter { $0.kind == .warmup }
+            return warmups.allSatisfy { $0.actualReps != nil }
+        }
     }
 
     func restoreSet(_ setID: UUID, actualReps: Int?) throws {
