@@ -7,6 +7,7 @@ struct TodaySetTile: View {
     let onEditWeight: ((Double) -> Void)?
     let onEditReps: ((Int) -> Void)?
     let onDelete: (() -> Void)?
+    let weightLoading: WeightLoading?
 
     @State private var isShowingWeightEditor = false
     @State private var isShowingWarmupEditor = false
@@ -17,13 +18,15 @@ struct TodaySetTile: View {
         onTap: @escaping () -> Void,
         onEditWeight: ((Double) -> Void)? = nil,
         onEditReps: ((Int) -> Void)? = nil,
-        onDelete: (() -> Void)? = nil
+        onDelete: (() -> Void)? = nil,
+        weightLoading: WeightLoading? = nil
     ) {
         self.set = set
         self.onTap = onTap
         self.onEditWeight = onEditWeight
         self.onEditReps = onEditReps
         self.onDelete = onDelete
+        self.weightLoading = weightLoading
     }
 
     var body: some View {
@@ -77,7 +80,8 @@ struct TodaySetTile: View {
                 WeightEditorSheet(
                     title: "Edit set weight",
                     initialWeightKg: set.weightKg,
-                    onCommit: onEditWeight
+                    onCommit: onEditWeight,
+                    weightLoading: weightLoading
                 )
             }
         }
@@ -226,14 +230,21 @@ struct WeightEditorSheet: View {
     let title: String
     let initialWeightKg: Double
     let onCommit: (Double) -> Void
+    let weightLoading: WeightLoading?
 
     @Environment(\.dismiss) private var dismiss
     @State private var weightText: String
 
-    init(title: String, initialWeightKg: Double, onCommit: @escaping (Double) -> Void) {
+    init(
+        title: String,
+        initialWeightKg: Double,
+        onCommit: @escaping (Double) -> Void,
+        weightLoading: WeightLoading? = nil
+    ) {
         self.title = title
         self.initialWeightKg = initialWeightKg
         self.onCommit = onCommit
+        self.weightLoading = weightLoading
         _weightText = State(
             initialValue: initialWeightKg.formatted(
                 .number.precision(.fractionLength(initialWeightKg.rounded(.down) == initialWeightKg ? 0 : 1))
@@ -244,16 +255,48 @@ struct WeightEditorSheet: View {
     var body: some View {
         NavigationStack {
             Form {
-                TextField("Weight (kg)", text: $weightText)
-                    .keyboardType(.decimalPad)
+                Section {
+                    TextField("Weight (kg)", text: $weightText)
+                        .keyboardType(.decimalPad)
 
-                HStack {
-                    Button("−2.5") {
-                        adjust(by: -2.5)
+                    HStack {
+                        Button("−2.5") {
+                            adjust(by: -2.5)
+                        }
+                        Spacer()
+                        Button("+2.5") {
+                            adjust(by: 2.5)
+                        }
                     }
-                    Spacer()
-                    Button("+2.5") {
-                        adjust(by: 2.5)
+                }
+
+                if weightLoading != nil {
+                    Section("Shortcuts") {
+                        if let bar = weightLoading?.barWeightKg {
+                            Button {
+                                setWeight(bar)
+                            } label: {
+                                Label("Empty bar (\(formatted(bar)) kg)", systemImage: "minus")
+                            }
+                        }
+
+                        Button {
+                            if let next = weightLoading?.nextLowerLoadable(currentWeight) {
+                                setWeight(next)
+                            }
+                        } label: {
+                            Label("Next loadable ↓", systemImage: "arrow.down")
+                        }
+                        .disabled(weightLoading?.nextLowerLoadable(currentWeight) == nil)
+
+                        Button {
+                            if let next = weightLoading?.nextHigherLoadable(currentWeight) {
+                                setWeight(next)
+                            }
+                        } label: {
+                            Label("Next loadable ↑", systemImage: "arrow.up")
+                        }
+                        .disabled(weightLoading?.nextHigherLoadable(currentWeight) == nil)
                     }
                 }
             }
@@ -277,10 +320,20 @@ struct WeightEditorSheet: View {
         .presentationDetents([.medium])
     }
 
+    private var currentWeight: Double {
+        Double(weightText.replacingOccurrences(of: ",", with: ".")) ?? initialWeightKg
+    }
+
     private func adjust(by delta: Double) {
-        let currentValue = Double(weightText.replacingOccurrences(of: ",", with: ".")) ?? initialWeightKg
-        let updated = max(0, currentValue + delta)
-        weightText = updated.formatted(.number.precision(.fractionLength(updated.rounded(.down) == updated ? 0 : 1)))
+        setWeight(max(0, currentWeight + delta))
+    }
+
+    private func setWeight(_ value: Double) {
+        weightText = formatted(value)
+    }
+
+    private func formatted(_ value: Double) -> String {
+        value.formatted(.number.precision(.fractionLength(value.rounded(.down) == value ? 0 : 1)))
     }
 }
 

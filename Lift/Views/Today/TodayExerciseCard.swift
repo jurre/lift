@@ -82,7 +82,8 @@ struct TodayExerciseCard: View {
                                         onTap: { onTapSet(set.id) },
                                         onEditWeight: { onEditSetWeight(set.id, $0) },
                                         onEditReps: { onEditSetReps(set.id, $0) },
-                                        onDelete: { onDeleteSet(set.id) }
+                                        onDelete: { onDeleteSet(set.id) },
+                                        weightLoading: weightLoading
                                     )
                                     .frame(width: 86)
                                 }
@@ -114,7 +115,8 @@ struct TodayExerciseCard: View {
                             set: set,
                             onTap: { onTapSet(set.id) },
                             onEditWeight: { onEditSetWeight(set.id, $0) },
-                            onDelete: { onDeleteSet(set.id) }
+                            onDelete: { onDeleteSet(set.id) },
+                            weightLoading: weightLoading
                         )
                     }
                 }
@@ -132,7 +134,8 @@ struct TodayExerciseCard: View {
             WeightEditorSheet(
                 title: "Edit working weight",
                 initialWeightKg: exerciseLog.targetWeightKgSnapshot,
-                onCommit: onEditWorkingWeight
+                onCommit: onEditWorkingWeight,
+                weightLoading: weightLoading
             )
         }
         .sheet(isPresented: $isShowingPlateCalculator) {
