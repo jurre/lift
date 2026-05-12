@@ -22,6 +22,7 @@ struct TodayView: View {
                                 TodayExerciseCard(
                                     exerciseLog: exerciseLog,
                                     plateSuggestion: viewModel.plateSuggestion(for: exerciseLog),
+                                    weightLoading: viewModel.weightLoading,
                                     onTapSet: { setID in
                                         performAsync { try await viewModel.tapSet(setID) }
                                     },

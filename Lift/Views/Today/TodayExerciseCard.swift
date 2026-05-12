@@ -3,6 +3,7 @@ import SwiftUI
 struct TodayExerciseCard: View {
     let exerciseLog: DraftExerciseLog
     let plateSuggestion: String
+    let weightLoading: WeightLoading?
     let onTapSet: (UUID) -> Void
     let onEditWorkingWeight: (Double) -> Void
     let onEditSetWeight: (UUID, Double) -> Void
@@ -13,6 +14,7 @@ struct TodayExerciseCard: View {
     @State private var hasInitializedWarmupExpansion = false
     @State private var hasUserToggledWarmupExpansion = false
     @State private var isShowingWorkingWeightEditor = false
+    @State private var isShowingPlateCalculator = false
 
     var body: some View {
         VStack(alignment: .leading, spacing: 18) {
@@ -44,12 +46,21 @@ struct TodayExerciseCard: View {
                         .accessibilityLabel("Edit working weight for today")
                     }
 
-                    Text(plateSuggestion)
-                        .font(.caption.weight(.semibold))
-                        .padding(.horizontal, 10)
-                        .padding(.vertical, 6)
-                        .background(Color.secondary.opacity(0.12), in: Capsule())
-                        .foregroundStyle(.secondary)
+                    Button {
+                        if weightLoading != nil {
+                            isShowingPlateCalculator = true
+                        }
+                    } label: {
+                        Text(plateSuggestion)
+                            .font(.caption.weight(.semibold))
+                            .padding(.horizontal, 10)
+                            .padding(.vertical, 6)
+                            .background(Color.secondary.opacity(0.12), in: Capsule())
+                            .foregroundStyle(.secondary)
+                    }
+                    .buttonStyle(.plain)
+                    .disabled(weightLoading == nil)
+                    .accessibilityLabel("Plate calculator: \(plateSuggestion)")
                 }
             }
 
@@ -100,6 +111,15 @@ struct TodayExerciseCard: View {
                 initialWeightKg: exerciseLog.targetWeightKgSnapshot,
                 onCommit: onEditWorkingWeight
             )
+        }
+        .sheet(isPresented: $isShowingPlateCalculator) {
+            if let weightLoading {
+                PlateCalculatorSheet(
+                    initialWeightKg: exerciseLog.targetWeightKgSnapshot,
+                    weightLoading: weightLoading,
+                    onUseWeight: onEditWorkingWeight
+                )
+            }
         }
         .onAppear {
             guard !hasInitializedWarmupExpansion else { return }
@@ -272,12 +292,14 @@ private struct RestTimerInlineView: View {
 }
 
 #Preview {
+    let viewModel = PreviewSupport.todayViewModel()
     let draftPlan = PreviewSupport.draftPlan()
 
     ScrollView {
         TodayExerciseCard(
             exerciseLog: draftPlan.exerciseLogs[0],
-            plateSuggestion: PreviewSupport.todayViewModel().plateSuggestion(for: draftPlan.exerciseLogs[0]),
+            plateSuggestion: viewModel.plateSuggestion(for: draftPlan.exerciseLogs[0]),
+            weightLoading: viewModel.weightLoading,
             onTapSet: { _ in },
             onEditWorkingWeight: { _ in },
             onEditSetWeight: { _, _ in },

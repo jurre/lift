@@ -30,7 +30,7 @@ final class TodayViewModel {
     @ObservationIgnored
     private var modelContext: ModelContext?
     @ObservationIgnored
-    private var weightLoading: WeightLoading?
+    private(set) var weightLoading: WeightLoading?
     @ObservationIgnored
     private var undoCoordinator: UndoCoordinator?
     @ObservationIgnored

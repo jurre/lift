@@ -46,6 +46,7 @@
 		BB7A83DA439167429C620798 /* TodayViewModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 916972C7CA250F6075D00080 /* TodayViewModelTests.swift */; };
 		C899D8A828BEB7B660E6BDA8 /* NotificationAuthorizationCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2D24718581B2427148674CDB /* NotificationAuthorizationCoordinator.swift */; };
 		D72E7666D9216B0190744C69 /* SetTapStateMachine.swift in Sources */ = {isa = PBXBuildFile; fileRef = EDE11F6602FA9991A6FF2967 /* SetTapStateMachine.swift */; };
+		DA648B4EECCD573D3AA62E79 /* PlateCalculatorSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00EDFE79ED1560BE3F4E03D6 /* PlateCalculatorSheet.swift */; };
 		DBA95CE115704767A9E70B64 /* WarmupCalculator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0D7BFC6516AE4A10A7A573C4 /* WarmupCalculator.swift */; };
 		E1635D2D05517BCDC60DFD5D /* FirstRunWizard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 800F3F989762EC3FA20378BE /* FirstRunWizard.swift */; };
 		E813D61159D38DE87F6D3DBC /* PreviewSupport.swift in Sources */ = {isa = PBXBuildFile; fileRef = BDDE3271456C3F548F9FCC8B /* PreviewSupport.swift */; };
@@ -75,6 +76,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		00EDFE79ED1560BE3F4E03D6 /* PlateCalculatorSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlateCalculatorSheet.swift; sourceTree = "<group>"; };
 		0D7BFC6516AE4A10A7A573C4 /* WarmupCalculator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WarmupCalculator.swift; sourceTree = "<group>"; };
 		16180F82202B745F16D5AF1D /* LiftModelContainer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiftModelContainer.swift; sourceTree = "<group>"; };
 		1B4E0C99CB8E9D2898981A06 /* AppEnvironment.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppEnvironment.swift; sourceTree = "<group>"; };
@@ -137,6 +139,7 @@
 		04DB25FBF5794F2278B3BB5D /* Today */ = {
 			isa = PBXGroup;
 			children = (
+				00EDFE79ED1560BE3F4E03D6 /* PlateCalculatorSheet.swift */,
 				225ED958B3478D6184903C1F /* TodayExerciseCard.swift */,
 				BEA3AC2295CDE728CF0459A7 /* TodaySetTile.swift */,
 				D76203446BD19737B6045B12 /* TodayView.swift */,
@@ -427,6 +430,7 @@
 				3BC469FDC98258B7EF447FD0 /* ModelEnums.swift in Sources */,
 				C899D8A828BEB7B660E6BDA8 /* NotificationAuthorizationCoordinator.swift in Sources */,
 				5AF552F079281932D52CF87E /* PersistenceService.swift in Sources */,
+				DA648B4EECCD573D3AA62E79 /* PlateCalculatorSheet.swift in Sources */,
 				E813D61159D38DE87F6D3DBC /* PreviewSupport.swift in Sources */,
 				5F6EDBB37C5BF5CA5C313043 /* ProgramModels.swift in Sources */,
 				47EF476BD570186ED5492D45 /* Progression.swift in Sources */,
