@@ -19,7 +19,7 @@ struct TodayViewModelSetTapTests {
 
         #expect(persistedSet.actualReps == persistedSet.targetReps)
         #expect(fixture.viewModel.isProgramDayLocked)
-        #expect(fixture.viewModel.programDayLockHint == "Workout A — locked for today")
+        #expect(fixture.viewModel.programDayLockHint == "Workout A — in progress. Tap to switch.")
     }
 
     @Test("working set taps decrement reps until cleared")

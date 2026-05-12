@@ -152,6 +152,76 @@ final class TodayViewModel {
         selectedProgramDay = matchingDay
     }
 
+    /// Outcome of a user-initiated request to switch to a different ProgramDay
+    /// while a draft may already exist.
+    enum SwitchOutcome: Equatable {
+        /// The requested day is the one already selected. Nothing to do.
+        case noChange
+        /// The switch was applied immediately (no draft, or empty draft silently discarded).
+        case applied
+        /// A draft with logged sets exists. Caller should confirm with the user before discarding.
+        case requiresConfirmation(loggedSetCount: Int)
+        /// The requested day isn't in the program rotation. Nothing happened.
+        case unknownDay
+    }
+
+    /// Try to switch to `day`. If a draft exists that has logged sets, the caller
+    /// must confirm via `confirmDiscardAndSwitch(to:)` before the swap is applied.
+    @discardableResult
+    func requestSwitch(to day: ProgramDay) -> SwitchOutcome {
+        guard let matchingDay = availableProgramDays.first(where: { matchesSelection($0, day) }) else {
+            return .unknownDay
+        }
+        if matchesSelection(selectedProgramDay, matchingDay) {
+            return .noChange
+        }
+
+        guard isProgramDayLocked else {
+            selectedProgramDay = matchingDay
+            return .applied
+        }
+
+        let logged = loggedSetCount(in: draftPlan)
+        if logged == 0 {
+            try? discardActiveDraftAndSwitch(to: matchingDay)
+            return .applied
+        }
+        return .requiresConfirmation(loggedSetCount: logged)
+    }
+
+    /// Confirm a switch that previously returned `.requiresConfirmation`.
+    /// Discards the active draft (and all logged sets) and switches to `day`.
+    func confirmDiscardAndSwitch(to day: ProgramDay) throws {
+        guard let matchingDay = availableProgramDays.first(where: { matchesSelection($0, day) }) else {
+            return
+        }
+        try discardActiveDraftAndSwitch(to: matchingDay)
+    }
+
+    private func discardActiveDraftAndSwitch(to day: ProgramDay) throws {
+        guard let modelContext else { return }
+        let draftService = try DraftSessionService(modelContext: modelContext)
+        if let activeDraftSessionID,
+           let draft = draftService.allDrafts().first(where: { $0.id == activeDraftSessionID }) {
+            draftService.discard(draft)
+        }
+        activeDraftSessionID = nil
+        reopenedDraftID = nil
+        isProgramDayLocked = false
+        programDayLockHint = nil
+        activeDraftStartedAt = nil
+        finishWorkoutPreview = nil
+        selectedProgramDay = day
+    }
+
+    private func loggedSetCount(in plan: DraftSessionPlan?) -> Int {
+        guard let plan else { return 0 }
+        return plan.exerciseLogs
+            .flatMap(\.sets)
+            .filter { $0.actualReps != nil }
+            .count
+    }
+
     func prepareDraftIfNeeded() throws -> WorkoutSession? {
         guard let modelContext, let selectedProgramDay else {
             return nil
@@ -434,9 +504,9 @@ final class TodayViewModel {
         let dayName = session.programDay?.name ?? selectedProgramDay?.name ?? "Workout"
         let todayID = LocalDay.id(for: now, in: timeZone)
         if session.workoutDayID == todayID {
-            return "\(dayName) — locked for today"
+            return "\(dayName) — in progress. Tap to switch."
         }
-        return "\(dayName) — locked to unfinished draft"
+        return "\(dayName) — unfinished draft. Tap to switch."
     }
 
     private func matchesSelection(_ lhs: ProgramDay?, _ rhs: ProgramDay?) -> Bool {

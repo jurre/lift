@@ -80,7 +80,7 @@ struct TodayViewModelTests {
 
         #expect(viewModel.selectedProgramDay?.name == "Workout B")
         #expect(viewModel.isProgramDayLocked)
-        #expect(viewModel.programDayLockHint == "Workout B — locked for today")
+        #expect(viewModel.programDayLockHint == "Workout B — in progress. Tap to switch.")
         let draftPlan = try #require(viewModel.draftPlan)
         #expect(draftPlan.exerciseLogs.map(\.exerciseNameSnapshot) == ["Squat", "OHP", "Deadlift"])
         let completedSet = draftPlan.exerciseLogs

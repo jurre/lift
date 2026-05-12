@@ -11,6 +11,14 @@ struct TodayView: View {
     @State private var errorMessage: String?
     let draftReopenCoordinator: DraftReopenCoordinator
 
+    @State private var pendingSwitchTarget: PendingSwitchTarget?
+
+    private struct PendingSwitchTarget: Identifiable {
+        let id = UUID()
+        let day: ProgramDay
+        let loggedSetCount: Int
+    }
+
     var body: some View {
         NavigationStack {
             Group {
@@ -127,7 +135,46 @@ struct TodayView: View {
             } message: {
                 Text(errorMessage ?? "")
             }
+            .confirmationDialog(
+                discardSwitchTitle,
+                isPresented: switchAlertBinding,
+                titleVisibility: .visible,
+                presenting: pendingSwitchTarget
+            ) { target in
+                Button("Discard and switch", role: .destructive) {
+                    perform { try viewModel.confirmDiscardAndSwitch(to: target.day) }
+                    pendingSwitchTarget = nil
+                }
+                Button("Keep current workout", role: .cancel) {
+                    pendingSwitchTarget = nil
+                }
+            } message: { target in
+                Text("This deletes \(target.loggedSetCount) logged \(target.loggedSetCount == 1 ? "set" : "sets") in your current workout.")
+            }
         }
+    }
+
+    private func handleWorkoutPick(_ day: ProgramDay) {
+        switch viewModel.requestSwitch(to: day) {
+        case .noChange, .applied, .unknownDay:
+            break
+        case let .requiresConfirmation(loggedSetCount):
+            pendingSwitchTarget = PendingSwitchTarget(day: day, loggedSetCount: loggedSetCount)
+        }
+    }
+
+    private var switchAlertBinding: Binding<Bool> {
+        Binding(
+            get: { pendingSwitchTarget != nil },
+            set: { newValue in
+                if !newValue { pendingSwitchTarget = nil }
+            }
+        )
+    }
+
+    private var discardSwitchTitle: String {
+        guard let target = pendingSwitchTarget else { return "" }
+        return "Switch to \(target.day.name)?"
     }
 
     private var header: some View {
@@ -136,7 +183,7 @@ struct TodayView: View {
                 selectedDayName: viewModel.selectedProgramDay?.name ?? "Choose workout",
                 availableProgramDays: viewModel.availableProgramDays,
                 isLocked: viewModel.isProgramDayLocked,
-                onSelect: viewModel.select(day:)
+                onSelect: handleWorkoutPick(_:)
             )
 
             if let programDayLockHint = viewModel.programDayLockHint {

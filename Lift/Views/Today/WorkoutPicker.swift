@@ -25,9 +25,9 @@ struct WorkoutPicker: View {
             .padding(.vertical, 10)
             .background(.thinMaterial, in: Capsule())
         }
-        .disabled(isLocked)
         .accessibilityLabel("Workout picker")
         .accessibilityValue(selectedDayName)
+        .accessibilityHint(isLocked ? "Workout in progress. Switching will discard logged sets." : "Choose today's workout")
     }
 }
 
