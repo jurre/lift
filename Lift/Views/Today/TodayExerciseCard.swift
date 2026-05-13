@@ -234,6 +234,8 @@ struct TodayExerciseCard: View {
                 TodaySetTile(
                     set: set,
                     isNextUp: set.id == nextUpID,
+                    hidesTargetReps: set.kind == .working
+                        && set.targetReps == exerciseLog.targetRepsSnapshot,
                     onTap: { onTapSet(set.id) },
                     onEditWeight: { onEditSetWeight(set.id, $0) },
                     onEditReps: set.kind == .warmup ? { onEditSetReps(set.id, $0) } : nil,

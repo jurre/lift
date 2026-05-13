@@ -4,6 +4,7 @@ import UIKit
 struct TodaySetTile: View {
     let set: DraftSet
     let isNextUp: Bool
+    let hidesTargetReps: Bool
     let onTap: () -> Void
     let onEditWeight: ((Double) -> Void)?
     let onEditReps: ((Int) -> Void)?
@@ -16,6 +17,7 @@ struct TodaySetTile: View {
     init(
         set: DraftSet,
         isNextUp: Bool = false,
+        hidesTargetReps: Bool = false,
         onTap: @escaping () -> Void,
         onEditWeight: ((Double) -> Void)? = nil,
         onEditReps: ((Int) -> Void)? = nil,
@@ -24,6 +26,7 @@ struct TodaySetTile: View {
     ) {
         self.set = set
         self.isNextUp = isNextUp
+        self.hidesTargetReps = hidesTargetReps
         self.onTap = onTap
         self.onEditWeight = onEditWeight
         self.onEditReps = onEditReps
@@ -34,13 +37,22 @@ struct TodaySetTile: View {
     var body: some View {
         Button(action: handleTap) {
             HStack(spacing: 8) {
-                Text(label)
-                    .font(.callout.weight(.semibold))
-                    .monospacedDigit()
-                    .lineLimit(1)
-                    .minimumScaleFactor(0.7)
-                    .foregroundStyle(labelColor)
-                    .frame(maxWidth: .infinity, alignment: .leading)
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(formattedWeight)
+                        .font(.callout.weight(.semibold))
+                        .monospacedDigit()
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.7)
+
+                    Text(secondaryLabel ?? " ")
+                        .font(.caption2.weight(.semibold))
+                        .monospacedDigit()
+                        .lineLimit(1)
+                        .opacity(secondaryLabel == nil ? 0 : 1)
+                        .foregroundStyle(LiftTheme.textSecondary)
+                }
+                .foregroundStyle(labelColor)
+                .frame(maxWidth: .infinity, alignment: .leading)
 
                 statusIcon
             }
@@ -99,11 +111,14 @@ struct TodaySetTile: View {
         .accessibilityAction(named: Text("Tap"), handleTap)
     }
 
-    private var label: String {
+    private var secondaryLabel: String? {
         if case let .partial(reps) = cellState, reps != set.targetReps {
-            return "\(formattedWeight) × \(reps)"
+            return "× \(reps)"
         }
-        return "\(formattedWeight) × \(set.targetReps)"
+        if hidesTargetReps {
+            return nil
+        }
+        return "× \(set.targetReps)"
     }
 
     private var formattedWeight: String {
@@ -391,20 +406,23 @@ struct WarmupSetEditorSheet: View {
 #Preview {
     HStack(spacing: 8) {
         TodaySetTile(
-            set: DraftSet(id: UUID(), kind: .working, index: 0, weightKg: 60, targetReps: 5, actualReps: 5),
+            set: DraftSet(id: UUID(), kind: .working, index: 0, weightKg: 52.5, targetReps: 5, actualReps: 5),
+            hidesTargetReps: true,
             onTap: {},
             onEditWeight: { _ in },
             onDelete: {}
         )
         TodaySetTile(
-            set: DraftSet(id: UUID(), kind: .working, index: 1, weightKg: 60, targetReps: 5, actualReps: 4),
+            set: DraftSet(id: UUID(), kind: .working, index: 1, weightKg: 52.5, targetReps: 5, actualReps: 4),
+            hidesTargetReps: true,
             onTap: {},
             onEditWeight: { _ in },
             onDelete: {}
         )
         TodaySetTile(
-            set: DraftSet(id: UUID(), kind: .working, index: 2, weightKg: 60, targetReps: 5),
+            set: DraftSet(id: UUID(), kind: .working, index: 2, weightKg: 52.5, targetReps: 5),
             isNextUp: true,
+            hidesTargetReps: true,
             onTap: {},
             onEditWeight: { _ in },
             onDelete: {}
